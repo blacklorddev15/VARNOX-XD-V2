@@ -5,7 +5,23 @@ const path = require('path');
 const settings = require('../settings');
 const { getPrefix } = require('../lib/prefix');
 
-const MENU_IMAGE = path.join(__dirname, '../assets/menu-style.jpg');
+const MENU_IMAGES = [
+  // Keep the original image as the first rotation entry.
+  path.join(__dirname, '../assets/menu-style.jpg'),
+  path.join(__dirname, '../assets/menu-style-2.jpg'),
+  path.join(__dirname, '../assets/menu-style-3.jpg'),
+  path.join(__dirname, '../assets/menu-style-4.jpg')
+];
+let menuImageCursor = 0;
+
+function nextMenuImage() {
+  for (let attempt = 0; attempt < MENU_IMAGES.length; attempt += 1) {
+    const imagePath = MENU_IMAGES[menuImageCursor % MENU_IMAGES.length];
+    menuImageCursor = (menuImageCursor + 1) % MENU_IMAGES.length;
+    if (fs.existsSync(imagePath)) return imagePath;
+  }
+  return null;
+}
 
 const channelInfo = {
   contextInfo: {
@@ -257,9 +273,11 @@ async function sendMenu(sock, chatId, message, text, senderId, withImage) {
   };
 
   if (withImage) {
+    const imagePath = nextMenuImage();
     try {
+      if (!imagePath) throw new Error('Aucune image de menu disponible');
       await sock.sendMessage(chatId, {
-        image: fs.readFileSync(MENU_IMAGE),
+        image: fs.readFileSync(imagePath),
         ...payload
       }, { quoted: message });
       return;
