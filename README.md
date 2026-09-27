@@ -166,7 +166,10 @@ Enter your WhatsApp number → Get the 8-digit pairing code → Link your bot!
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `OWNER_NUMBER` | Your WhatsApp number (no `+`) | ✅ Yes |
+| `OWNER_NUMBER` | Administrator WhatsApp number (no `+`) | ✅ Yes |
+| `BOT_NUMBER` | WhatsApp number that will be paired as the bot (no `+`) | Recommended |
+
+`OWNER_NUMBER` and `BOT_NUMBER` are intentionally separate. Existing sessions under the persistent disk are restored automatically; pairing a new bot account never overwrites `data/owner.json`.
 | `PORT` | Auto-set by Render (default `10000`) | Auto |
 | `PREFIX` | Command prefix (default `.`) | No |
 | `BOT_NAME` | Bot display name | No |
