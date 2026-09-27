@@ -11,7 +11,7 @@ const settings = {
   developer: 'ʋαɾɳσx Tech',
 
   // ⚠️ Ton numéro WhatsApp SANS le + (ex: 224621000000)
-  ownerNumber: '224669288332',
+  ownerNumber: process.env.OWNER_NUMBER || '224669288332',
 
   giphyApiKey: process.env.GIPHY_API_KEY || '',
   commandMode: "public",               // "public" ou "private"
