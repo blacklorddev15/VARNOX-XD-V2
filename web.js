@@ -226,6 +226,8 @@ async function recoverPairingSocket(number, sessionDir) {
  *  Démarrage des sessions existantes (au boot)
  * ═══════════════════════════════════════════════════════════ */
 async function startExistingSessions() {
+  // Restore every persisted session without deleting or replacing credentials.
+  const restoreJobs = [];
   // Sessions multi-user ./sessions/user_<number>/
   try {
     const dirs = fs.readdirSync(SESSIONS_DIR);
@@ -240,7 +242,7 @@ async function startExistingSessions() {
       }
       if (!fs.existsSync(path.join(sd, 'creds.json'))) continue;
       console.log(`[VARNOX] Restoring session: ${num}`);
-      createBotInstance(sd, num).catch(e => console.error(`[VARNOX] Restore ${num} failed:`, e.message));
+      restoreJobs.push(createBotInstance(sd, num).catch(e => console.error(`[VARNOX] Restore ${num} failed:`, e.message)));
     }
   } catch (e) { console.error('[VARNOX] startExistingSessions:', e.message); }
 
@@ -250,12 +252,14 @@ async function startExistingSessions() {
     try { ownerNum = JSON.parse(fs.readFileSync(OWNER_JSON, 'utf8')).ownerNumber || 'legacy'; } catch {}
     if (!getBotInstance(ownerNum)) {
       console.log(`[VARNOX] Legacy session → ${ownerNum}`);
-      createBotInstance(LEGACY_SESSION, ownerNum).catch(e => console.error('[VARNOX] Legacy restore:', e.message));
+      restoreJobs.push(createBotInstance(LEGACY_SESSION, ownerNum).catch(e => console.error('[VARNOX] Legacy restore:', e.message)));
     }
   }
+  await Promise.allSettled(restoreJobs);
+  console.log(`[VARNOX] Persistent session restore scheduled: ${restoreJobs.length}`);
 }
 
-setTimeout(startExistingSessions, 1500);
+setTimeout(() => startExistingSessions().catch(e => console.error('[VARNOX] Session restore:', e.message)), 1500);
 
 /* ═══════════════════════════════════════════════════════════
  *  ROUTES
@@ -379,7 +383,13 @@ async function handleCode(req, res) {
   const existing = getBotInstance(number);
   if (existing?.connected)
     return res.json({ error: false, already: true, message: 'Déjà connecté.' });
-  if (existing && !existing.connected) stopBotInstance(number);
+  if (existing && !existing.connected) {
+    return res.json({
+      error: true,
+      preserving: true,
+      message: 'Cette session est momentanément en reconnexion. Elle est préservée ; attends sa reprise ou utilise /reset uniquement pour un nouveau jumelage.'
+    });
+  }
 
   // Si le code est déjà affiché, le renvoyer au lieu de recréer une session.
   // Recréer un socket ici invaliderait le code visible dans WhatsApp.
