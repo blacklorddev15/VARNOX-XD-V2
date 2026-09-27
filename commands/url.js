@@ -60,10 +60,6 @@ function formatBytes(bytes) {
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 }
 
-function encodeButtonValue(value) {
-    return Buffer.from(String(value), 'utf8').toString('base64url');
-}
-
 function uploadButtons(url) {
     return [
         {
@@ -71,7 +67,6 @@ function uploadButtons(url) {
             params: {
                 display_text: '↗️ Open Link',
                 url,
-                merchant_url: url
             }
         },
         {
@@ -142,6 +137,7 @@ async function urlCommand(sock, chatId, message) {
 
         try {
             await sendInteractiveMessage(sock, chatId, {
+                title: 'Media Link',
                 body: caption,
                 footer: '│ POWERED BY VARNOX-XD©',
                 buttons: uploadButtons(url),
