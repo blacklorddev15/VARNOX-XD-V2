@@ -67,7 +67,9 @@ setInterval(() => {
     }
 }, 30_000) // check every 30 seconds
 
-let phoneNumber = settings.ownerNumber
+const configuredOwnerNumber = String(process.env.OWNER_NUMBER || settings.ownerNumber || '').replace(/\D/g, '')
+const configuredBotNumber = String(process.env.BOT_NUMBER || '').replace(/\D/g, '')
+let phoneNumber = configuredBotNumber
 let legacyReconnectPending = false
 let legacyReconnectAttempts = 0
 let owner = (() => { try { return JSON.parse(fs.readFileSync("./data/owner.json", "utf8")); } catch { return { ownerNumber: settings.ownerNumber, ownerName: settings.botOwner, botName: settings.botName, prefix: process.env.PREFIX || ".", version: settings.version, mess: settings.botOwner }; } })()
@@ -84,7 +86,7 @@ const question = (text) => {
         return new Promise((resolve) => rl.question(text, resolve))
     } else {
         // In non-interactive environment, use ownerNumber from settings
-        return Promise.resolve(settings.ownerNumber || phoneNumber)
+        return Promise.resolve(configuredBotNumber || phoneNumber)
     }
 }
 
@@ -289,7 +291,7 @@ async function startXeonBotInc() {
             console.log(chalk.cyan(`< ================================================== >`))
             console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL:𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: VARNOX-XD-V2`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} WA NUMBER: ${owner.ownerNumber || owner.ownerName || 'Owner'}`))
+            console.log(chalk.magenta(`${global.themeemoji || '•'} OWNER NUMBER: ${owner.ownerNumber || configuredOwnerNumber || owner.ownerName || 'Owner'}\n${global.themeemoji || '•'} BOT NUMBER: ${configuredBotNumber || phoneNumber || 'configured at pairing'}`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: Central-Hex`))
             console.log(chalk.green(`${global.themeemoji || '•'} 🤖 Bot Connected Successfully! ✅`))
             console.log(chalk.blue(`Bot Version: ${settings.version}`))
