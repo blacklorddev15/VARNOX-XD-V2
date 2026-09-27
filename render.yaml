@@ -20,6 +20,8 @@ services:
         value: "20"
       - key: OWNER_NUMBER
         sync: false
+      - key: BOT_NUMBER
+        sync: false
       - key: SESSION_DIR
         value: /opt/render/project/src/sessions
       - key: RENDER_EXTERNAL_URL
