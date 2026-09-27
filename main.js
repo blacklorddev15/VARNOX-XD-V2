@@ -265,6 +265,26 @@ function unwrapMessageContent(content) {
             if (isBot) return; // Ignorer silencieusement les messages des autres bots
         }
 
+        // Native Flow clients return the selected action in paramsJson.
+        // Decode it here so cta_copy remains useful even when WhatsApp sends a
+        // nativeFlow response instead of the older template-button shape.
+        const nativeFlow = message.message?.interactiveResponseMessage?.nativeFlowResponseMessage;
+        if (nativeFlow) {
+            let params = {};
+            try { params = JSON.parse(nativeFlow.paramsJson || '{}'); } catch {}
+            if (nativeFlow.name === 'cta_copy' || params.copy_code) {
+                const copiedUrl = String(params.copy_code || params.url || '').trim();
+                try {
+                    new URL(copiedUrl);
+                    await sock.sendMessage(message.key.remoteJid, { text: copiedUrl }, { quoted: message });
+                } catch {
+                    await sock.sendMessage(message.key.remoteJid, { text: '❌ Le lien à copier est invalide.' }, { quoted: message });
+                }
+                return;
+            }
+            if (nativeFlow.name === 'cta_url') return;
+        }
+
         // Handle URL copy buttons from url.js. The URL stays hidden until the user presses Copy Link.
         const templateButtonId = message.message?.templateButtonReplyMessage?.selectedId?.trim();
         if (templateButtonId?.startsWith('url_copy:')) {
