@@ -24,6 +24,20 @@ services:
         sync: false
       - key: SESSION_DIR
         value: /opt/render/project/src/sessions
+      - key: HOST
+        value: 0.0.0.0
+      - key: RESTORE_CONCURRENCY
+        value: "2"
+      - key: MESSAGE_CONCURRENCY
+        value: "4"
+      - key: MAX_MESSAGE_QUEUE
+        value: "250"
+      - key: PAIRING_RATE_MAX
+        value: "5"
+      - key: PAIRING_RATE_WINDOW_MS
+        value: "600000"
+      - key: MAX_PAIRING_RECOVERY_ATTEMPTS
+        value: "10"
       - key: RENDER_EXTERNAL_URL
         fromService:
           type: web
