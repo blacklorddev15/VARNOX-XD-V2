@@ -51,21 +51,22 @@ const store = createStore()   // instance unique pour index.js (mode mono-utilis
 const settings = require('./settings')
 
 // Memory optimization - Force garbage collection if available
-setInterval(() => {
+const gcTimer = setInterval(() => {
     if (global.gc) {
         global.gc()
         console.log('🧹 Garbage collection completed')
     }
 }, 60_000) // every 1 minute
+gcTimer.unref?.()
 
 // Memory monitoring - Restart if RAM gets too high
-setInterval(() => {
+const memoryTimer = setInterval(() => {
     const used = process.memoryUsage().rss / 1024 / 1024
     if (used > 400) {
-        console.log('⚠️ RAM too high (>400MB), restarting bot...')
-        process.exit(1) // Panel will auto-restart
+        console.error(`⚠️ RAM élevée (${Math.round(used)}MB). Le processus reste actif pour éviter une boucle de redémarrage; inspecte /health.`)
     }
 }, 30_000) // check every 30 seconds
+memoryTimer.unref?.()
 
 const configuredOwnerNumber = String(process.env.OWNER_NUMBER || settings.ownerNumber || '').replace(/\D/g, '')
 const configuredBotNumber = String(process.env.BOT_NUMBER || '').replace(/\D/g, '')
@@ -208,7 +209,7 @@ async function startXeonBotInc() {
     })
 
     XeonBotInc.getName = (jid, withoutContact = false) => {
-        id = XeonBotInc.decodeJid(jid)
+        const id = XeonBotInc.decodeJid(jid)
         withoutContact = XeonBotInc.withoutContact || withoutContact
         let v
         if (id.endsWith("@g.us")) return new Promise(async (resolve) => {
@@ -367,12 +368,6 @@ async function startXeonBotInc() {
         await handleGroupParticipantUpdate(XeonBotInc, update);
     });
 
-    XeonBotInc.ev.on('messages.upsert', async (m) => {
-        if (m.messages[0].key && m.messages[0].key.remoteJid === 'status@broadcast') {
-            await handleStatus(XeonBotInc, m);
-        }
-    });
-
     XeonBotInc.ev.on('status.update', async (status) => {
         await handleStatus(XeonBotInc, status);
     });
@@ -385,7 +380,7 @@ async function startXeonBotInc() {
     } catch (error) {
         console.error('Error in startXeonBotInc:', error)
         await delay(5000)
-        startXeonBotInc()
+        return startXeonBotInc()
     }
 }
 
@@ -396,17 +391,30 @@ startXeonBotInc().catch(error => {
     process.exit(1)
 })
 process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err)
+    console.error('[VARNOX] Uncaught Exception:', err?.stack || err)
+    console.error('[VARNOX] Le superviseur doit redémarrer le processus après cette erreur critique.')
+    process.exitCode = 1
 })
 
 process.on('unhandledRejection', (err) => {
-    console.error('Unhandled Rejection:', err)
+    console.error('[VARNOX] Unhandled Rejection:', err?.stack || err)
 })
 
-let file = require.resolve(__filename)
-fs.watchFile(file, () => {
-    fs.unwatchFile(file)
-    console.log(chalk.redBright(`Update ${__filename}`))
-    delete require.cache[file]
-    require(file)
-})
+let legacyShuttingDown = false
+async function shutdownLegacy(signal) {
+    if (legacyShuttingDown) return
+    legacyShuttingDown = true
+    console.warn(`[VARNOX] ${signal}: fermeture propre du socket legacy`)
+    clearInterval(gcTimer)
+    clearInterval(memoryTimer)
+    try { rl?.close() } catch {}
+    process.exit(0)
+}
+process.on('SIGTERM', () => shutdownLegacy('SIGTERM').catch(err => {
+    console.error('[VARNOX] Legacy shutdown failed:', err)
+    process.exit(1)
+}))
+process.on('SIGINT', () => shutdownLegacy('SIGINT').catch(err => {
+    console.error('[VARNOX] Legacy shutdown failed:', err)
+    process.exit(1)
+}))
