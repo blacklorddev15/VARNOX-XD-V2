@@ -44,10 +44,14 @@ const {
   getAllInstances,
   markConnected,
   getLatestVersion,
+  serializeSaveCreds,
+  shutdownBotInstances,
+  getRuntimeStats,
 } = require('./lib/botInstance');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 /* ─── Répertoires ─────────────────────────────────────────── */
 const SESSIONS_DIR   = process.env.SESSION_DIR
@@ -104,6 +108,34 @@ const pairingSockets = new Map();
 // Une seule génération de code active par numéro. Cela évite qu'un double clic
 // ou deux onglets détruisent la session de couplage de l'autre.
 const pairingRequests = new Map();
+const pairingRecoveryPromises = new Map();
+const pairingRecoveryInProgress = new Set();
+const pairingRate = new Map();
+const HTTP_METRICS = { total: 0, active: 0, errors: 0 };
+const PAIRING_METRICS = { requests: 0, rejected: 0, reused: 0, inFlight: 0 };
+const STARTED_AT = Date.now();
+const PAIRING_RATE_WINDOW_MS = Math.max(60_000, Number(process.env.PAIRING_RATE_WINDOW_MS || 10 * 60 * 1000));
+const PAIRING_RATE_MAX = Math.max(1, Number(process.env.PAIRING_RATE_MAX || 5));
+const MAX_PAIRING_RECOVERY_ATTEMPTS = Math.max(1, Number(process.env.MAX_PAIRING_RECOVERY_ATTEMPTS || 10));
+
+app.set('trust proxy', true);
+app.use((req, res, next) => {
+  HTTP_METRICS.total += 1;
+  HTTP_METRICS.active += 1;
+  res.once('finish', () => {
+    HTTP_METRICS.active = Math.max(0, HTTP_METRICS.active - 1);
+    if (res.statusCode >= 500) HTTP_METRICS.errors += 1;
+  });
+  next();
+});
+
+const pairingRateCleanupTimer = setInterval(() => {
+  const cutoff = Date.now() - PAIRING_RATE_WINDOW_MS;
+  for (const [key, value] of pairingRate) {
+    if (value.startedAt < cutoff) pairingRate.delete(key);
+  }
+}, PAIRING_RATE_WINDOW_MS);
+pairingRateCleanupTimer.unref?.();
 
 /* ─── Sessions marquées prêtes ───────────────────────────── */
 // Map<string, { ts }>
@@ -134,6 +166,45 @@ function isTransientPairingDisconnect(code) {
   return isPairingRestart(code) || [408, 409, 411, 428, 500, 502, 503, 504, 520, 521, 522].includes(code);
 }
 
+function closeSocket(sock, reason = 'replaced') {
+  if (!sock) return;
+  try { sock.ev?.removeAllListeners?.(); } catch (error) {
+    console.warn(`[VARNOX] Pairing listener cleanup failed (${reason}):`, error.message);
+  }
+  try { sock.ws?.close(); } catch (error) {
+    console.warn(`[VARNOX] Pairing socket close failed (${reason}):`, error.message);
+  }
+}
+
+function allowPairingRequest(req, number) {
+  const ip = String(req.ip || req.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const key = `${ip}:${number}`;
+  const now = Date.now();
+  const current = pairingRate.get(key);
+  if (!current || now - current.startedAt >= PAIRING_RATE_WINDOW_MS) {
+    pairingRate.set(key, { startedAt: now, count: 1 });
+    return true;
+  }
+  if (current.count >= PAIRING_RATE_MAX) return false;
+  current.count += 1;
+  return true;
+}
+
+function markPairingPending(sessionDir) {
+  try {
+    fs.writeFileSync(path.join(sessionDir, '.pairing_pending'), JSON.stringify({
+      at: new Date().toISOString(),
+      pid: process.pid,
+    }));
+  } catch (error) {
+    console.error('[VARNOX] Unable to mark pairing session:', error.message);
+  }
+}
+
+function clearPairingPending(sessionDir) {
+  try { fs.rmSync(path.join(sessionDir, '.pairing_pending'), { force: true }); } catch {}
+}
+
 function pairingSocketOptions(version, logger, state) {
   return {
     version,
@@ -153,18 +224,33 @@ function pairingSocketOptions(version, logger, state) {
   };
 }
 
+function schedulePairingRecovery(number, sessionDir, delayMs = 750) {
+  const pending = pairingSockets.get(number);
+  if (!pending || pending.recoveryTimer || pending.recovering || pairedNumbers.has(number)) return;
+  pending.recoveryTimer = setTimeout(() => {
+    pending.recoveryTimer = null;
+    recoverPairingSocket(number, sessionDir).catch(error => {
+      console.error(`[VARNOX] Pairing recovery task failed for ${number}:`, error.message);
+    });
+  }, delayMs);
+  pending.recoveryTimer.unref?.();
+}
+
 async function recoverPairingSocket(number, sessionDir) {
   const pending = pairingSockets.get(number);
-  if (!pending || pending.recovering || pairedNumbers.has(number)) return;
+  if (!pending || pending.recovering || pairedNumbers.has(number) || pairingRecoveryInProgress.has(number)) return;
 
+  pairingRecoveryInProgress.add(number);
   pending.recovering = true;
   pending.recoveryAttempts = (pending.recoveryAttempts || 0) + 1;
-  if (pending.recoveryAttempts > 3) {
-    const message = 'WhatsApp a fermé la connexion de jumelage. Supprime les anciens appareils liés, puis génère un nouveau code.';
+  if (pending.recoveryAttempts > MAX_PAIRING_RECOVERY_ATTEMPTS) {
+    const message = 'WhatsApp a fermé la connexion de jumelage. La session est conservée ; génère un nouveau code si nécessaire.';
     pairingFailures.set(number, { code: 515, message, ts: Date.now() });
     clearTimeout(pending.timer);
+    clearTimeout(pending.recoveryTimer);
+    closeSocket(pending.sock, 'pairing recovery limit');
     pairingSockets.delete(number);
-    try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+    pairingRecoveryInProgress.delete(number);
     return;
   }
 
@@ -172,17 +258,20 @@ async function recoverPairingSocket(number, sessionDir) {
     // Important: reuse the same auth directory. Recreating an empty session
     // produces a new identity and invalidates the code that is on the phone.
     const logger = pino({ level: 'silent' });
+    closeSocket(pending.sock, 'pairing recovery');
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+    const serializedSaveCreds = serializeSaveCreds(saveCreds);
     const version = await getLatestVersion();
     const sock = makeWASocket(pairingSocketOptions(version, logger, state));
-    sock.ev.on('creds.update', saveCreds);
+    sock.ev.on('creds.update', serializedSaveCreds);
     sock._credsHandlerAttached = true;
 
     const next = {
       ...pending,
       sock,
-      saveCreds,
+      saveCreds: serializedSaveCreds,
       recovering: false,
+      recoveryTimer: null,
     };
     pairingSockets.set(number, next);
 
@@ -191,13 +280,13 @@ async function recoverPairingSocket(number, sessionDir) {
 
       if (connection === 'open') {
         try {
-          await next.activate(sock, saveCreds);
+          await next.activate(sock, serializedSaveCreds);
         } catch (e) {
           console.error(`[VARNOX] Pairing recovery activation failed for ${number}:`, e.message);
           pairingFailures.set(number, { code: 500, message: e.message, ts: Date.now() });
           clearTimeout(next.timer);
           pairingSockets.delete(number);
-          try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+          
         }
         return;
       }
@@ -206,19 +295,20 @@ async function recoverPairingSocket(number, sessionDir) {
         const info = disconnectInfo(lastDisconnect?.error);
         if (info.code === 401 || info.code === DisconnectReason.loggedOut) {
           const message = 'WhatsApp a refusé le code. Supprime les anciens appareils liés et génère un nouveau code.';
-          pairingFailures.set(number, { code: 401, message, ts: Date.now() });
+          pairingFailures.set(number, { code: 401, message: `${message} La session est conservée.`, detail: info.message, ts: Date.now() });
           clearTimeout(next.timer);
           pairingSockets.delete(number);
-          try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
         } else if (isPairingRestart(info.code)) {
-          setTimeout(() => recoverPairingSocket(number, sessionDir), 750);
+          schedulePairingRecovery(number, sessionDir, Math.min(60000, 750 * (2 ** Math.min(next.recoveryAttempts - 1, 6))));
         }
       }
     });
   } catch (e) {
     pending.recovering = false;
     console.error(`[VARNOX] Pairing recovery failed for ${number}:`, e.message);
-    setTimeout(() => recoverPairingSocket(number, sessionDir), 1500);
+    schedulePairingRecovery(number, sessionDir, 1500);
+  } finally {
+    pairingRecoveryInProgress.delete(number);
   }
 }
 
@@ -241,8 +331,21 @@ async function startExistingSessions() {
         continue;
       }
       if (!fs.existsSync(path.join(sd, 'creds.json'))) continue;
+      if (fs.existsSync(path.join(sd, '.pairing_pending'))) {
+        let registered = false;
+        try {
+          registered = !!JSON.parse(fs.readFileSync(path.join(sd, 'creds.json'), 'utf8')).registered;
+        } catch {}
+        if (!registered) {
+          console.warn(`[VARNOX] Skipping unfinished pairing session: ${num}`);
+          continue;
+        }
+        // A crash can happen after WhatsApp authenticates but before the
+        // marker is cleared. Registered credentials are safe to restore.
+        clearPairingPending(sd);
+      }
       console.log(`[VARNOX] Restoring session: ${num}`);
-      restoreJobs.push(createBotInstance(sd, num).catch(e => console.error(`[VARNOX] Restore ${num} failed:`, e.message)));
+      restoreJobs.push(() => createBotInstance(sd, num).catch(e => console.error(`[VARNOX] Restore ${num} failed:`, e.message)));
     }
   } catch (e) { console.error('[VARNOX] startExistingSessions:', e.message); }
 
@@ -252,10 +355,13 @@ async function startExistingSessions() {
     try { ownerNum = JSON.parse(fs.readFileSync(OWNER_JSON, 'utf8')).ownerNumber || 'legacy'; } catch {}
     if (!getBotInstance(ownerNum)) {
       console.log(`[VARNOX] Legacy session → ${ownerNum}`);
-      restoreJobs.push(createBotInstance(LEGACY_SESSION, ownerNum).catch(e => console.error('[VARNOX] Legacy restore:', e.message)));
+      restoreJobs.push(() => createBotInstance(LEGACY_SESSION, ownerNum).catch(e => console.error('[VARNOX] Legacy restore:', e.message)));
     }
   }
-  await Promise.allSettled(restoreJobs);
+  const restoreConcurrency = Math.max(1, Number(process.env.RESTORE_CONCURRENCY || 2));
+  for (let index = 0; index < restoreJobs.length; index += restoreConcurrency) {
+    await Promise.allSettled(restoreJobs.slice(index, index + restoreConcurrency).map(start => start()));
+  }
   console.log(`[VARNOX] Persistent session restore scheduled: ${restoreJobs.length}`);
 }
 
@@ -269,14 +375,24 @@ app.get('/ping', (_q, r) => r.json({ pong: true, ts: Date.now() }));
 app.get('/health', (_q, r) => {
   const insts = getAllInstances();
   r.json({
-    status: 'online',
+    status: 'ok',
+    ready: true,
     bot: 'VARNOX XD V2',
-    v: '19.3.0',
+    v: '19.4.0',
     build: 'pairing-baileys7-ubuntu',
     waFallback: '2.3000.1043857760',
     uptime: Math.floor(process.uptime()),
     instances: insts,
     total: insts.length,
+    runtime: getRuntimeStats(),
+    http: HTTP_METRICS,
+    pairing: {
+      active: pairingSockets.size,
+      inFlight: pairingRequests.size,
+      rateKeys: pairingRate.size,
+      metrics: PAIRING_METRICS,
+    },
+    memoryMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
   });
 });
 
@@ -328,7 +444,8 @@ app.get('/reset', (req, res) => {
       if (pairingSockets.has(num)) {
         const p = pairingSockets.get(num);
         clearTimeout(p.timer);
-        try { p.sock?.ws?.close(); } catch {}
+        clearTimeout(p.recoveryTimer);
+        closeSocket(p.sock, 'reset');
         try { fs.rmSync(p.sessionDir, { recursive: true, force: true }); } catch {}
         pairingSockets.delete(num);
       }
@@ -341,7 +458,8 @@ app.get('/reset', (req, res) => {
     for (const i of getAllInstances()) stopBotInstance(i.number);
     pairingSockets.forEach(p => {
       clearTimeout(p.timer);
-      try { p.sock?.ws?.close(); } catch {}
+      clearTimeout(p.recoveryTimer);
+      closeSocket(p.sock, 'reset-all');
     });
     pairingSockets.clear();
     pairedNumbers.clear();
@@ -356,6 +474,8 @@ app.get('/debug', (_q, r) => r.json({
   paired       : [...pairedNumbers.keys()],
   failures     : [...pairingFailures.entries()],
   memMB        : Math.round(process.memoryUsage().rss / 1024 / 1024),
+  runtime      : getRuntimeStats(),
+  http         : HTTP_METRICS,
 }));
 
 /* ════════════════════════════════════════════════════════════
@@ -373,11 +493,21 @@ app.get('/debug', (_q, r) => r.json({
  * ════════════════════════════════════════════════════════════ */
 async function handleCode(req, res) {
   res.setHeader('Content-Type', 'application/json');
+  req.setTimeout?.(65000);
+  PAIRING_METRICS.requests += 1;
 
   let number = (req.query.number || req.body?.number || DEFAULT_BOT_NUMBER).toString().replace(/\D/g, '');
   if (!number) return res.json({ error: true, message: 'Numéro requis' });
   if (number.length < 7 || number.length > 15)
     return res.json({ error: true, message: 'Numéro invalide (7–15 chiffres, sans +)' });
+  if (!allowPairingRequest(req, number)) {
+    PAIRING_METRICS.rejected += 1;
+    return res.status(429).json({
+      error: true,
+      message: 'Trop de demandes de pairing pour ce numéro. Réessaie dans quelques minutes.',
+      retryAfterSeconds: Math.ceil(PAIRING_RATE_WINDOW_MS / 1000),
+    });
+  }
 
   // Déjà connecté ?
   const existing = getBotInstance(number);
@@ -395,6 +525,7 @@ async function handleCode(req, res) {
   // Recréer un socket ici invaliderait le code visible dans WhatsApp.
   const activePairing = pairingSockets.get(number);
   if (activePairing?.code && (!activePairing.expiresAt || activePairing.expiresAt > Date.now())) {
+    PAIRING_METRICS.reused += 1;
     return res.json({ error: false, code: activePairing.code, reused: true });
   }
 
@@ -417,6 +548,7 @@ async function handleCode(req, res) {
     rejectRequest = reject;
   });
   pairingRequests.set(number, requestResult);
+  PAIRING_METRICS.inFlight += 1;
 
   const userSessionDir = path.join(SESSIONS_DIR, `user_${number}`);
   const sessionDir     = userSessionDir;
@@ -428,15 +560,17 @@ async function handleCode(req, res) {
     // "close" ne doit jamais toucher la nouvelle tentative du même numéro.
     pairingSockets.delete(number);
     clearTimeout(old.timer);
-    try { old.sock?.ws?.close(); } catch {}
+    closeSocket(old.sock, 'new pairing request');
     try { fs.rmSync(old.sessionDir, { recursive: true, force: true }); } catch {}
     await new Promise(r => setTimeout(r, 300));
   }
 
   // Une tentative précédente non connectée peut avoir laissé des clés
   // incomplètes. On repart d'une session propre pour chaque nouveau code.
-  try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+           // Preserve the auth directory for diagnostics and to avoid
+           // destroying valid credentials after a temporary close.
   fs.mkdirSync(sessionDir, { recursive: true });
+  markPairingPending(sessionDir);
 
   console.log(`[VARNOX] /code for ${number}`);
   pairingFailures.delete(number);
@@ -446,6 +580,7 @@ async function handleCode(req, res) {
     // ── Créer le socket directement dans la session permanente ────────────
     const logger = pino({ level: 'silent' });
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+    const serializedSaveCreds = serializeSaveCreds(saveCreds);
     // Ne jamais générer un code avec la version fallback si le réseau est
     // disponible : WhatsApp peut l'afficher puis refuser sa validation.
     const version = await getLatestVersion();
@@ -458,7 +593,7 @@ async function handleCode(req, res) {
     // pre-keys, etc.) ne sont pas écrites sur disque au fur et à mesure.
     // Le saveCreds() manuel dans promotePairToBot ne suffit pas car certaines
     // mises à jour arrivent APRÈS connection:'open' — race condition.
-    sock.ev.on('creds.update', saveCreds);
+    sock.ev.on('creds.update', serializedSaveCreds);
 
     // ── Promesse du code de couplage ──────────────────────────────────────
     let codeResolve, codeReject;
@@ -501,7 +636,7 @@ async function handleCode(req, res) {
     // Le socket reste ouvert et devient directement le socket du bot.
     let pairActivated = false;
 
-    async function promotePairToBot(activeSock = sock, activeSaveCreds = saveCreds) {
+    async function promotePairToBot(activeSock = sock, activeSaveCreds = serializedSaveCreds) {
       // Éviter un double-déclenchement si connection:'open' fire deux fois
       if (pairActivated) return;
       pairActivated = true;
@@ -521,6 +656,7 @@ async function handleCode(req, res) {
       // into owner.json: OWNER_NUMBER remains the permanent administrator.
       if (getAllInstances().length === 0) initOwnerJson();
       pairedNumbers.set(number, { ts: Date.now() });
+      clearPairingPending(sessionDir);
 
       // Le socket actuel devient le socket du bot : aucun deuxième handshake.
       const p = pairingSockets.get(number);
@@ -535,7 +671,7 @@ async function handleCode(req, res) {
     // seconde requête et aux événements 515 de retrouver la session exacte.
     const pendingPairing = {
       sock,
-      saveCreds,
+      saveCreds: serializedSaveCreds,
       sessionDir,
       timer: null,
       code: null,
@@ -543,6 +679,7 @@ async function handleCode(req, res) {
       activate: promotePairToBot,
       recoveryAttempts: 0,
       recovering: false,
+      recoveryTimer: null,
     };
     pairingSockets.set(number, pendingPairing);
 
@@ -560,7 +697,14 @@ async function handleCode(req, res) {
 
       if (connection === 'open') {
         console.log(`[VARNOX] ✅ WA authenticated for ${number}`);
-        await promotePairToBot(sock, saveCreds);
+        try {
+          await promotePairToBot(sock, serializedSaveCreds);
+        } catch (error) {
+          console.error(`[VARNOX] Pairing activation failed for ${number}:`, error.message);
+          pairingFailures.set(number, { code: 500, message: error.message, ts: Date.now() });
+          clearTimeout(pendingPairing.timer);
+          pairingSockets.delete(number);
+        }
       }
 
       if (connection === 'close') {
@@ -590,7 +734,7 @@ async function handleCode(req, res) {
         // not a rejection: keep the same auth directory and reconnect it.
         if (codeDone && isTransientPairingDisconnect(sc)) {
           console.warn(`[VARNOX] Pairing socket restart required for ${number}; preserving session`);
-          setTimeout(() => recoverPairingSocket(number, sessionDir), 750);
+          schedulePairingRecovery(number, sessionDir, 750);
           return;
         }
 
@@ -602,7 +746,8 @@ async function handleCode(req, res) {
           pairingFailures.set(number, { code: sc || 0, message, detail: info.message, ts: Date.now() });
           const p = pairingSockets.get(number);
           if (p) { clearTimeout(p.timer); pairingSockets.delete(number); }
-          try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+           // Keep the directory; /reset or a deliberate new /code attempt
+           // can clear an incomplete pairing explicitly.
         }
         // Sinon → Baileys / botInstance gère la reconnexion
       }
@@ -626,10 +771,9 @@ async function handleCode(req, res) {
     // Garder le socket vivant jusqu'à 15 min
     const timer = setTimeout(() => {
       if (pairingSockets.has(number)) {
-        try { pairingSockets.get(number).sock?.ws?.close(); } catch {}
+        closeSocket(pairingSockets.get(number).sock, 'pairing expiry');
         pairingSockets.delete(number);
-        if (!pairedNumbers.has(number))
-          try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+         // Keep the directory so a temporary timeout cannot destroy auth data.
       }
     }, 15 * 60 * 1000);
 
@@ -640,20 +784,20 @@ async function handleCode(req, res) {
     const result = { error: false, code: formatted };
     resolveRequest(result);
     pairingRequests.delete(number);
+    PAIRING_METRICS.inFlight = Math.max(0, PAIRING_METRICS.inFlight - 1);
     return res.json(result);
 
   } catch (err) {
     console.error(`[VARNOX] /code error ${number}:`, err.message);
     pairingRequests.delete(number);
+    PAIRING_METRICS.inFlight = Math.max(0, PAIRING_METRICS.inFlight - 1);
     rejectRequest(err);
     const pending = pairingSockets.get(number);
     if (pending) {
       clearTimeout(pending.timer);
       pairingSockets.delete(number);
     }
-    try { sock?.ws?.close(); } catch {}
-    if (!pairedNumbers.has(number))
-      try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+    closeSocket(sock, 'pairing request failure');
     const result = { error: true, message: err.message || 'Erreur génération du code' };
     return res.json(result);
   }
@@ -662,20 +806,78 @@ async function handleCode(req, res) {
 app.get('/code',  handleCode);
 app.post('/code', handleCode);
 
+app.use((error, _req, res, _next) => {
+  const status = Number(error?.statusCode || error?.status || 500);
+  console.error('[VARNOX] HTTP request error:', error?.message || error);
+  if (res.headersSent) return;
+  res.status(status >= 400 && status < 600 ? status : 500).json({
+    error: true,
+    message: status >= 500 ? 'Erreur interne du serveur.' : (error?.message || 'Requête invalide.'),
+  });
+});
+
 /* ─── SPA fallback ─────────────────────────────────────────── */
 app.get('*', (_q, r) => {
   const p = path.join(__dirname, 'public', 'index.html');
   if (fs.existsSync(p)) return r.sendFile(p);
-  r.json({ status: 'VARNOX XD V2 — Multi-User', v: '19.0.0' });
+  r.json({ status: 'VARNOX XD V2 — Multi-User', v: '19.4.0' });
 });
 
-/* ─── Démarrage ────────────────────────────────────────────── */
-app.listen(PORT, () => {
+/* ─── Démarrage et arrêt propre ───────────────────────────── */
+let server;
+let shuttingDown = false;
+
+async function shutdown(signal, exitCode = 0) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.warn(`[VARNOX] ${signal}: graceful shutdown started`);
+  clearInterval(pairingRateCleanupTimer);
+  for (const [number, pending] of pairingSockets) {
+    clearTimeout(pending.timer);
+    clearTimeout(pending.recoveryTimer);
+    closeSocket(pending.sock, `shutdown:${signal}`);
+    pairingSockets.delete(number);
+  }
+  await shutdownBotInstances();
+  if (server) {
+    await new Promise(resolve => {
+      const timeout = setTimeout(resolve, 5000);
+      timeout.unref?.();
+      server.close(() => {
+        clearTimeout(timeout);
+        resolve();
+      });
+    });
+  }
+  console.warn(`[VARNOX] ${signal}: sessions preserved; exiting`);
+  process.exit(exitCode);
+}
+
+process.on('SIGTERM', () => { shutdown('SIGTERM').catch(error => { console.error('[VARNOX] SIGTERM shutdown failed:', error); process.exit(1); }); });
+process.on('SIGINT', () => { shutdown('SIGINT').catch(error => { console.error('[VARNOX] SIGINT shutdown failed:', error); process.exit(1); }); });
+process.on('uncaughtException', error => {
+  console.error('[VARNOX] uncaughtException:', error?.stack || error);
+  shutdown('uncaughtException', 1).catch(shutdownError => {
+    console.error('[VARNOX] fatal shutdown failure:', shutdownError);
+    process.exit(1);
+  });
+});
+process.on('unhandledRejection', reason => {
+  console.error('[VARNOX] unhandledRejection:', reason?.stack || reason);
+});
+
+server = app.listen(PORT, HOST, () => {
   console.log(`\n╔════════════════════════════════════════════════╗`);
-  console.log(`║  VARNOX XD V2 v19 — Pairing stable              ║`);
-  console.log(`║  Port : ${PORT}                                    ║`);
+  console.log(`║  VARNOX XD V2 v19.4 — Pairing stable             ║`);
+  console.log(`║  Port : ${PORT} / Host : ${HOST}                  ║`);
   console.log(`║  saveCreds → session permanente                  ║`);
   console.log(`╚════════════════════════════════════════════════╝\n`);
 });
+server.on('error', error => {
+  console.error('[VARNOX] HTTP server error:', error);
+});
+server.requestTimeout = 70_000;
+server.headersTimeout = 75_000;
+server.keepAliveTimeout = 65_000;
 
 module.exports = app;
