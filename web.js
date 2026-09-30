@@ -1,18 +1,18 @@
 /**
- * VARNOX XD V2 — web.js  v19  (SINGLE-SOCKET PERSISTENT PAIRING)
+ * VARNOX X ULTRA — web.js  v19  (SINGLE-SOCKET PERSISTENT PAIRING)
  *
- * Corrections v18 (fix root cause de l'échec de reconnexion) :
+ * v18 fixes (root cause of the reconnection failure) :
  *
- *  PROBLÈME v17/v18 :
- *    - Le socket de couplage était séparé du socket du bot.
- *    - La copie et la fermeture pendant le handshake pouvaient perdre des
- *      clés de signal et faire refuser le code par WhatsApp.
+ *  PROBLEM v17/v18 :
+ *    - The pairing socket was separate from the bot socket.
+ *    - Copying and closing during the handshake could lose
+ *      signal keys and cause WhatsApp to reject the code.
  *
  *  FIX v19 :
- *    - Le socket de pairing utilise directement userSessionDir.
- *    - Il devient le socket du bot après connection:'open'.
- *    - Aucun tmpDir, aucune copie de clés, aucune fermeture/reconnexion
- *      pendant le handshake WhatsApp.
+ *    - The pairing socket uses userSessionDir directly.
+ *    - It becomes the bot socket after connection:'open'.
+ *    - No tmpDir, no key copying, no close/reconnect
+ *      during the WhatsApp handshake.
  */
 'use strict';
 
@@ -53,7 +53,7 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-/* ─── Répertoires ─────────────────────────────────────────── */
+/* ─── Directories ─────────────────────────────────────────── */
 const SESSIONS_DIR   = process.env.SESSION_DIR
   ? path.resolve(process.env.SESSION_DIR)
   : path.join(__dirname, 'sessions');
@@ -77,7 +77,7 @@ function initOwnerJson() {
     fs.writeFileSync(OWNER_JSON, JSON.stringify({
       ownerNumber,
       ownerName   : cur.ownerName || 'Owner',
-      botName     : cur.botName   || 'VARNOX XD V2',
+      botName     : cur.botName   || 'VARNOX X ULTRA',
       prefix      : cur.prefix    || process.env.PREFIX || '.',
       version     : '2.0.0',
       mess        : cur.mess      || 'Owner',
@@ -102,11 +102,11 @@ if (SELF_URL) {
   }, 14 * 60 * 1000);
 }
 
-/* ─── Sockets de couplage en cours ───────────────────────── */
+/* ─── Pairing sockets in progress ───────────────────────── */
 // Map<string, { sock, saveCreds, sessionDir, timer }>
 const pairingSockets = new Map();
-// Une seule génération de code active par numéro. Cela évite qu'un double clic
-// ou deux onglets détruisent la session de couplage de l'autre.
+// Only one active code generation per number. This prevents a double click
+// or two tabs from destroying each other's pairing session.
 const pairingRequests = new Map();
 const pairingRecoveryPromises = new Map();
 const pairingRecoveryInProgress = new Set();
@@ -137,7 +137,7 @@ const pairingRateCleanupTimer = setInterval(() => {
 }, PAIRING_RATE_WINDOW_MS);
 pairingRateCleanupTimer.unref?.();
 
-/* ─── Sessions marquées prêtes ───────────────────────────── */
+/* ─── Sessions marked ready ───────────────────────────── */
 // Map<string, { ts }>
 const pairedNumbers = new Map();
 // Map<string, { code, message, ts }>
@@ -244,7 +244,7 @@ async function recoverPairingSocket(number, sessionDir) {
   pending.recovering = true;
   pending.recoveryAttempts = (pending.recoveryAttempts || 0) + 1;
   if (pending.recoveryAttempts > MAX_PAIRING_RECOVERY_ATTEMPTS) {
-    const message = 'WhatsApp a fermé la connexion de jumelage. La session est conservée ; génère un nouveau code si nécessaire.';
+    const message = 'WhatsApp closed the pairing connection. The session is kept ; generate a new code if necessary.';
     pairingFailures.set(number, { code: 515, message, ts: Date.now() });
     clearTimeout(pending.timer);
     clearTimeout(pending.recoveryTimer);
@@ -294,8 +294,8 @@ async function recoverPairingSocket(number, sessionDir) {
       if (connection === 'close' && !pairedNumbers.has(number)) {
         const info = disconnectInfo(lastDisconnect?.error);
         if (info.code === 401 || info.code === DisconnectReason.loggedOut) {
-          const message = 'WhatsApp a refusé le code. Supprime les anciens appareils liés et génère un nouveau code.';
-          pairingFailures.set(number, { code: 401, message: `${message} La session est conservée.`, detail: info.message, ts: Date.now() });
+          const message = 'WhatsApp rejected the code. Remove the old linked devices and generate a new code.';
+          pairingFailures.set(number, { code: 401, message: `${message} The session is kept.`, detail: info.message, ts: Date.now() });
           clearTimeout(next.timer);
           pairingSockets.delete(number);
         } else if (isPairingRestart(info.code)) {
@@ -313,7 +313,7 @@ async function recoverPairingSocket(number, sessionDir) {
 }
 
 /* ═══════════════════════════════════════════════════════════
- *  Démarrage des sessions existantes (au boot)
+ *  Starting existing sessions (at boot)
  * ═══════════════════════════════════════════════════════════ */
 async function startExistingSessions() {
   // Restore every persisted session without deleting or replacing credentials.
@@ -349,7 +349,7 @@ async function startExistingSessions() {
     }
   } catch (e) { console.error('[VARNOX] startExistingSessions:', e.message); }
 
-  // Rétrocompat session unique ./session/
+  // Legacy single-session backward compat ./session/
   if (fs.existsSync(path.join(LEGACY_SESSION, 'creds.json'))) {
     let ownerNum = 'legacy';
     try { ownerNum = JSON.parse(fs.readFileSync(OWNER_JSON, 'utf8')).ownerNumber || 'legacy'; } catch {}
@@ -377,7 +377,7 @@ app.get('/health', (_q, r) => {
   r.json({
     status: 'ok',
     ready: true,
-    bot: 'VARNOX XD V2',
+    bot: 'VARNOX X ULTRA',
     v: '19.4.0',
     build: 'pairing-baileys7-ubuntu',
     waFallback: '2.3000.1043857760',
@@ -418,8 +418,8 @@ app.get('/session', (req, res) => {
   if (!number) return res.json({ ready: false });
   number = number.replace(/\D/g, '');
   const i = getBotInstance(number);
-  // IMPORTANT: creds.json est créé dès le début du pairing. Sa présence
-  // ne signifie pas que WhatsApp a accepté le code.
+  // IMPORTANT: creds.json is created from the start of pairing. Its presence
+  // does not mean WhatsApp accepted the code.
   if (i?.connected) {
     // pairedNumbers is in-memory and empty after a process restart.
     return res.json({ ready: true, connected: true });
@@ -440,7 +440,7 @@ app.get('/reset', (req, res) => {
     if (num) {
       pairingFailures.delete(num);
       stopBotInstance(num);
-      // Fermer le socket de couplage s'il est en cours
+      // Close the pairing socket if one is in progress
       if (pairingSockets.has(num)) {
         const p = pairingSockets.get(num);
         clearTimeout(p.timer);
@@ -479,17 +479,17 @@ app.get('/debug', (_q, r) => r.json({
 }));
 
 /* ════════════════════════════════════════════════════════════
- *  /code  — Génération du code de couplage
+ *  /code  — Pairing code generation
  *
- *  FLUX (un seul socket, session persistante) :
+ *  FLOW (single socket, persistent session) :
  *
- *  1. Créer socket Baileys dans ./sessions/user_<num>/
- *  2. Après connection:'connecting' → requestPairingCode (3s de délai)
- *  3. Retourner le code au frontend
- *  4. Quand connection:'open' (code entré dans WhatsApp) :
+ *  1. Create a Baileys socket in ./sessions/user_<num>/
+ *  2. After connection:'connecting' → requestPairingCode (3s delay)
+ *  3. Return the code to the frontend
+ *  4. When connection:'open' (code entered in WhatsApp) :
  *       a. flush saveCreds()
- *       b. attachBotHandlers() sur ce même socket
- *       c. garder la connexion ouverte — aucun handoff risqué
+ *       b. attachBotHandlers() on this same socket
+ *       c. keep the connection open — no risky handoff
  * ════════════════════════════════════════════════════════════ */
 async function handleCode(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -497,47 +497,47 @@ async function handleCode(req, res) {
   PAIRING_METRICS.requests += 1;
 
   let number = (req.query.number || req.body?.number || DEFAULT_BOT_NUMBER).toString().replace(/\D/g, '');
-  if (!number) return res.json({ error: true, message: 'Numéro requis' });
+  if (!number) return res.json({ error: true, message: 'Number required' });
   if (number.length < 7 || number.length > 15)
-    return res.json({ error: true, message: 'Numéro invalide (7–15 chiffres, sans +)' });
+    return res.json({ error: true, message: 'Invalid number (7–15 digits, without +)' });
   if (!allowPairingRequest(req, number)) {
     PAIRING_METRICS.rejected += 1;
     return res.status(429).json({
       error: true,
-      message: 'Trop de demandes de pairing pour ce numéro. Réessaie dans quelques minutes.',
+      message: 'Too many pairing requests for this number. Try again in a few minutes.',
       retryAfterSeconds: Math.ceil(PAIRING_RATE_WINDOW_MS / 1000),
     });
   }
 
-  // Déjà connecté ?
+  // Already connected?
   const existing = getBotInstance(number);
   if (existing?.connected)
-    return res.json({ error: false, already: true, message: 'Déjà connecté.' });
+    return res.json({ error: false, already: true, message: 'Already connected.' });
   if (existing && !existing.connected) {
     return res.json({
       error: true,
       preserving: true,
-      message: 'Cette session est momentanément en reconnexion. Elle est préservée ; attends sa reprise ou utilise /reset uniquement pour un nouveau jumelage.'
+      message: 'This session is temporarily reconnecting. It is preserved ; wait for it to resume or use /reset only for a new pairing.'
     });
   }
 
-  // Si le code est déjà affiché, le renvoyer au lieu de recréer une session.
-  // Recréer un socket ici invaliderait le code visible dans WhatsApp.
+  // If the code is already displayed, return it instead of recreating a session.
+  // Recreating a socket here would invalidate the code visible in WhatsApp.
   const activePairing = pairingSockets.get(number);
   if (activePairing?.code && (!activePairing.expiresAt || activePairing.expiresAt > Date.now())) {
     PAIRING_METRICS.reused += 1;
     return res.json({ error: false, code: activePairing.code, reused: true });
   }
 
-  // Les requêtes concurrentes pour un même numéro partagent le même résultat.
-  // Les utilisateurs différents continuent, eux, à utiliser leurs propres
-  // sessions en parallèle.
+  // Concurrent requests for the same number share the same result.
+  // Different users keep, in turn, using their own
+  // sessions in parallel.
   const runningRequest = pairingRequests.get(number);
   if (runningRequest) {
     try {
       return res.json(await runningRequest);
     } catch (error) {
-      return res.json({ error: true, message: error.message || 'Erreur génération du code' });
+      return res.json({ error: true, message: error.message || 'Code generation error' });
     }
   }
 
@@ -553,11 +553,11 @@ async function handleCode(req, res) {
   const userSessionDir = path.join(SESSIONS_DIR, `user_${number}`);
   const sessionDir     = userSessionDir;
 
-  // Fermer le couplage précédent pour ce numéro s'il existe
+  // Close the previous pairing for this number if it exists
   if (pairingSockets.has(number)) {
     const old = pairingSockets.get(number);
-    // Retirer l'ancienne entrée avant de fermer le socket : son événement
-    // "close" ne doit jamais toucher la nouvelle tentative du même numéro.
+    // Remove the old entry before closing the socket: its
+    // "close" event must never affect the new attempt for the same number.
     pairingSockets.delete(number);
     clearTimeout(old.timer);
     closeSocket(old.sock, 'new pairing request');
@@ -565,8 +565,8 @@ async function handleCode(req, res) {
     await new Promise(r => setTimeout(r, 300));
   }
 
-  // Une tentative précédente non connectée peut avoir laissé des clés
-  // incomplètes. On repart d'une session propre pour chaque nouveau code.
+  // A previous unconnected attempt may have left incomplete
+  // keys. We start from a clean session for each new code.
            // Preserve the auth directory for diagnostics and to avoid
            // destroying valid credentials after a temporary close.
   fs.mkdirSync(sessionDir, { recursive: true });
@@ -577,25 +577,25 @@ async function handleCode(req, res) {
 
   let sock = null;
   try {
-    // ── Créer le socket directement dans la session permanente ────────────
+    // ── Create the socket directly in the permanent session ────────────
     const logger = pino({ level: 'silent' });
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
     const serializedSaveCreds = serializeSaveCreds(saveCreds);
-    // Ne jamais générer un code avec la version fallback si le réseau est
-    // disponible : WhatsApp peut l'afficher puis refuser sa validation.
+    // Never generate a code with the fallback version when the network is
+    // available: WhatsApp may display it then reject its validation.
     const version = await getLatestVersion();
 
     sock = makeWASocket(pairingSocketOptions(version, logger, state));
 
-    // ★ CRITIQUE : enregistrer creds.update dès maintenant (vers sessionDir).
-    // WhatsApp envoie des mises à jour de clés en continu pendant et après
-    // le couplage. Sans ce handler, les clés de session (noise keys, signal
-    // pre-keys, etc.) ne sont pas écrites sur disque au fur et à mesure.
-    // Le saveCreds() manuel dans promotePairToBot ne suffit pas car certaines
-    // mises à jour arrivent APRÈS connection:'open' — race condition.
+    // ★ CRITICAL: register creds.update right now (to sessionDir).
+    // WhatsApp sends key updates continuously during and after
+    // pairing. Without this handler, the session keys (noise keys, signal
+    // pre-keys, etc.) are not written to disk as they go.
+    // The manual saveCreds() in promotePairToBot is not enough because some
+    // updates arrive AFTER connection:'open' — race condition.
     sock.ev.on('creds.update', serializedSaveCreds);
 
-    // ── Promesse du code de couplage ──────────────────────────────────────
+    // ── Pairing code promise ──────────────────────────────────────
     let codeResolve, codeReject;
     let codeDone    = false;
     let pairStarted = false;
@@ -606,7 +606,7 @@ async function handleCode(req, res) {
     const hardTimer = setTimeout(() => {
       if (!codeDone) {
         codeDone = true;
-        codeReject(new Error('Timeout 60s — WhatsApp n’a pas préparé la connexion. Réessaie dans quelques secondes.'));
+        codeReject(new Error('Timeout 60s — WhatsApp did not prepare the connection. Try again in a few seconds.'));
       }
     }, 60000);
 
@@ -616,14 +616,14 @@ async function handleCode(req, res) {
       try {
         if (state.creds.registered) {
           codeDone = true; clearTimeout(hardTimer);
-          codeReject(new Error('Numéro déjà enregistré. Dans WhatsApp → Appareils liés → supprime le bot, puis réessaie.'));
+          codeReject(new Error('Number already registered. In WhatsApp → Linked devices → remove the bot, then try again.'));
           return;
         }
         const raw = await sock.requestPairingCode(number);
         if (!codeDone) {
           if (raw) { codeDone = true; clearTimeout(hardTimer); codeResolve(raw); }
           else if (attempts < 5) setTimeout(tryGetCode, Math.min(400 * attempts, 2000));
-          else { codeDone = true; clearTimeout(hardTimer); codeReject(new Error('Code null. Réessaie.')); }
+          else { codeDone = true; clearTimeout(hardTimer); codeReject(new Error('Null code. Try again.')); }
         }
       } catch (e) {
         if (codeDone) return;
@@ -632,16 +632,16 @@ async function handleCode(req, res) {
       }
     }
 
-    // ── Gestion de la session après couplage réussi ───────────────────────
-    // Le socket reste ouvert et devient directement le socket du bot.
+    // ── Session handling after successful pairing ───────────────────────
+    // The socket stays open and directly becomes the bot socket.
     let pairActivated = false;
 
     async function promotePairToBot(activeSock = sock, activeSaveCreds = serializedSaveCreds) {
-      // Éviter un double-déclenchement si connection:'open' fire deux fois
+      // Avoid a double trigger if connection:'open' fires twice
       if (pairActivated) return;
       pairActivated = true;
 
-      // Laisser les dernières clés de signal être écrites avant activation.
+      // Let the last signal keys be written before activation.
       await new Promise(r => setTimeout(r, 1200));
       try { await activeSaveCreds(); } catch (e) {
         console.error(`[VARNOX] saveCreds error:`, e.message);
@@ -649,7 +649,7 @@ async function handleCode(req, res) {
 
       if (!fs.existsSync(path.join(sessionDir, 'creds.json'))) {
         pairActivated = false;
-        throw new Error('creds.json absent après authentification');
+        throw new Error('creds.json missing after authentication');
       }
 
       // The paired WhatsApp account is the bot identity. Never write it
@@ -658,7 +658,7 @@ async function handleCode(req, res) {
       pairedNumbers.set(number, { ts: Date.now() });
       clearPairingPending(sessionDir);
 
-      // Le socket actuel devient le socket du bot : aucun deuxième handshake.
+      // The current socket becomes the bot socket: no second handshake.
       const p = pairingSockets.get(number);
       if (p) { clearTimeout(p.timer); pairingSockets.delete(number); }
 
@@ -667,8 +667,8 @@ async function handleCode(req, res) {
       console.log(`[VARNOX] ✅ Bot activated on persistent socket for ${number}`);
     }
 
-    // Enregistrer le socket avant que le code soit retourné permet à une
-    // seconde requête et aux événements 515 de retrouver la session exacte.
+    // Registering the socket before the code is returned lets a
+    // second request and the 515 events find the exact session.
     const pendingPairing = {
       sock,
       saveCreds: serializedSaveCreds,
@@ -683,15 +683,15 @@ async function handleCode(req, res) {
     };
     pairingSockets.set(number, pendingPairing);
 
-    // ── Listener de connexion ─────────────────────────────────────────────
+    // ── Connection listener ─────────────────────────────────────────────
     sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
       if (pairingSockets.get(number) !== pendingPairing) return;
 
       if (connection === 'connecting' && !pairStarted) {
         pairStarted = true;
-        // Le socket est déjà en phase de handshake. Une courte attente évite
-        // la race sans imposer le délai de plusieurs secondes de l'ancienne
-        // implémentation.
+        // The socket is already in the handshake phase. A short wait avoids
+        // the race without imposing the several-second delay of the old
+        // implementation.
         setTimeout(tryGetCode, 650);
       }
 
@@ -708,7 +708,7 @@ async function handleCode(req, res) {
       }
 
       if (connection === 'close') {
-        // Après activation, le handler de botInstance gère la reconnexion.
+        // After activation, the botInstance handler manages reconnection.
         if (pairActivated) return;
 
         const info      = disconnectInfo(lastDisconnect?.error);
@@ -717,15 +717,15 @@ async function handleCode(req, res) {
         console.error(`[VARNOX] Pairing socket closed for ${number}; code=${sc ?? 'unknown'}; reason=${info.message}`);
 
         if (!codeDone) {
-          // Le code n'a pas encore été émis — signaler l'erreur
+          // The code has not been emitted yet — report the error
           if (loggedOut) {
-            const message = 'WhatsApp a rejeté la connexion avant la validation du code.';
+            const message = 'WhatsApp rejected the connection before code validation.';
             pairingFailures.set(number, { code: sc || 401, message, detail: info.message, ts: Date.now() });
             codeDone = true;
             clearTimeout(hardTimer);
             codeReject(new Error(message));
           }
-          // Sinon Baileys reconnecte automatiquement → on laisse faire
+          // Otherwise Baileys reconnects automatically → we let it happen
           return;
         }
 
@@ -741,20 +741,20 @@ async function handleCode(req, res) {
         // A real rejection invalidates the displayed code.
         if (!pairedNumbers.has(number)) {
           const message = sc === 401
-            ? 'Code refusé par WhatsApp. Supprime les anciennes sessions liées, attends quelques secondes, puis génère un nouveau code.'
-            : `Connexion WhatsApp fermée avant la validation (code ${sc ?? 'inconnu'}).`;
+            ? 'Code rejected by WhatsApp. Remove the old linked sessions, wait a few seconds, then generate a new code.'
+            : `WhatsApp connection closed before validation (code ${sc ?? 'unknown'}).`;
           pairingFailures.set(number, { code: sc || 0, message, detail: info.message, ts: Date.now() });
           const p = pairingSockets.get(number);
           if (p) { clearTimeout(p.timer); pairingSockets.delete(number); }
            // Keep the directory; /reset or a deliberate new /code attempt
            // can clear an incomplete pairing explicitly.
         }
-        // Sinon → Baileys / botInstance gère la reconnexion
+        // Otherwise → Baileys / botInstance manages reconnection
       }
     });
 
-    // Fallback : si 'connecting' tarde ou ne se déclenche pas avant que l'on
-    // enregistre le listener (race condition possible avec certaines versions)
+    // Fallback: if 'connecting' is slow or does not fire before we
+    // register the listener (possible race condition with some versions)
     setTimeout(() => {
       if (!codeDone && !pairStarted) {
         pairStarted = true;
@@ -762,13 +762,13 @@ async function handleCode(req, res) {
       }
     }, 2500);
 
-    // ── Attendre le code ──────────────────────────────────────────────────
+    // ── Wait for the code ──────────────────────────────────────────────────
     const raw       = await codePromise;
     const formatted = raw.toUpperCase().replace(/[^A-Z0-9]/g, '').match(/.{1,4}/g)?.join('-') || raw;
 
     console.log(`[VARNOX] Code for ${number}: ${formatted}`);
 
-    // Garder le socket vivant jusqu'à 15 min
+    // Keep the socket alive for up to 15 min
     const timer = setTimeout(() => {
       if (pairingSockets.has(number)) {
         closeSocket(pairingSockets.get(number).sock, 'pairing expiry');
@@ -798,7 +798,7 @@ async function handleCode(req, res) {
       pairingSockets.delete(number);
     }
     closeSocket(sock, 'pairing request failure');
-    const result = { error: true, message: err.message || 'Erreur génération du code' };
+    const result = { error: true, message: err.message || 'Code generation error' };
     return res.json(result);
   }
 }
@@ -812,7 +812,7 @@ app.use((error, _req, res, _next) => {
   if (res.headersSent) return;
   res.status(status >= 400 && status < 600 ? status : 500).json({
     error: true,
-    message: status >= 500 ? 'Erreur interne du serveur.' : (error?.message || 'Requête invalide.'),
+    message: status >= 500 ? 'Internal server error.' : (error?.message || 'Invalid request.'),
   });
 });
 
@@ -820,10 +820,10 @@ app.use((error, _req, res, _next) => {
 app.get('*', (_q, r) => {
   const p = path.join(__dirname, 'public', 'index.html');
   if (fs.existsSync(p)) return r.sendFile(p);
-  r.json({ status: 'VARNOX XD V2 — Multi-User', v: '19.4.0' });
+  r.json({ status: 'VARNOX X ULTRA — Multi-User', v: '19.4.0' });
 });
 
-/* ─── Démarrage et arrêt propre ───────────────────────────── */
+/* ─── Startup and clean shutdown ───────────────────────────── */
 let server;
 let shuttingDown = false;
 
@@ -869,9 +869,9 @@ process.on('unhandledRejection', reason => {
 
 server = app.listen(PORT, HOST, () => {
   console.log(`\n╔════════════════════════════════════════════════╗`);
-  console.log(`║  VARNOX XD V2 v19.4 — Pairing stable             ║`);
+  console.log(`║  VARNOX X ULTRA v19.4 — Pairing stable             ║`);
   console.log(`║  Port : ${PORT} / Host : ${HOST}                  ║`);
-  console.log(`║  saveCreds → session permanente                  ║`);
+  console.log(`║  saveCreds → persistent session                  ║`);
   console.log(`╚════════════════════════════════════════════════╝\n`);
 });
 server.on('error', error => {

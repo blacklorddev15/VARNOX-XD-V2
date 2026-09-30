@@ -3,20 +3,20 @@ const { sleep } = require('../lib/myfunc');
 const settings = require('../settings');
 
 /**
- * Commande .pair — Génère un code de jumelage WhatsApp
- * Utilise l'API /code du panneau web VARNOX XD V2
+ * .pair command — Generates a WhatsApp pairing code
+ * Uses the /code API of the VARNOX X ULTRA web panel
  */
 async function pairCommand(sock, chatId, message, q) {
     try {
         if (!q) {
             return await sock.sendMessage(chatId, {
-                text: `📱 *VARNOX XD V2 — Pair Code*\n\nUtilisation: *.pair <numéro>*\nExemple: *.pair 224610835573*\n\nOu visite le panneau web:\n${settings.pairApiUrl}`,
+                text: `📱 *VARNOX X ULTRA — Pair Code*\n\nUsage: *.pair <number>*\nExample: *.pair 224610835573*\n\nOr visit the web panel:\n${settings.pairApiUrl}`,
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363424782348922@newsletter',
-                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                         serverMessageId: -1
                     }
                 }
@@ -29,13 +29,13 @@ async function pairCommand(sock, chatId, message, q) {
 
         if (numbers.length === 0) {
             return await sock.sendMessage(chatId, {
-                text: '❌ Numéro invalide. Format: *.pair 224610835573*',
+                text: '❌ Invalid number. Format: *.pair 224610835573*',
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363424782348922@newsletter',
-                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                         serverMessageId: -1
                     }
                 }
@@ -44,20 +44,20 @@ async function pairCommand(sock, chatId, message, q) {
 
         for (const number of numbers) {
             await sock.sendMessage(chatId, {
-                text: `⏳ Génération du code pour *${number}*...\nPatientez ~10 secondes.`,
+                text: `⏳ Generating the code for *${number}*...\nWait ~10 seconds.`,
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363424782348922@newsletter',
-                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                         serverMessageId: -1
                     }
                 }
             });
 
             try {
-                // Appel à notre propre API Vercel (plus fiable qu'un service tiers)
+                // Call our own Vercel API (more reliable than a third-party service)
                 const baseUrl = String(settings.pairApiUrl || '').replace(/\/+$/, '');
                 const response = await axios.get(`${baseUrl}/code`, {
                     params: { number },
@@ -69,13 +69,13 @@ async function pairCommand(sock, chatId, message, q) {
                     const code = response.data.code;
                     await sleep(2000);
                     await sock.sendMessage(chatId, {
-                        text: `✅ *Code de jumelage WhatsApp*\n\n🔑 Code: *${code}*\n\n📱 Comment utiliser:\n1. Ouvre WhatsApp\n2. Paramètres → Appareils connectés\n3. Lier un appareil → Lier avec numéro de téléphone\n4. Entre le code ci-dessus\n\n⚠️ Le code expire en quelques minutes.`,
+                        text: `✅ *WhatsApp Pairing Code*\n\n🔑 Code: *${code}*\n\n📱 How to use:\n1. Open WhatsApp\n2. Settings → Linked devices\n3. Link a device → Link with phone number\n4. Enter the code above\n\n⚠️ The code expires in a few minutes.`,
                         contextInfo: {
                             forwardingScore: 1,
                             isForwarded: true,
                             forwardedNewsletterMessageInfo: {
                                 newsletterJid: '120363424782348922@newsletter',
-                                newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                                newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                                 serverMessageId: -1
                             }
                         }
@@ -84,15 +84,15 @@ async function pairCommand(sock, chatId, message, q) {
                     throw new Error(response.data?.message || response.data?.error || `HTTP ${response.status}`);
                 }
             } catch (apiError) {
-                console.error('[pair.js] Erreur API:', apiError.message);
+                console.error('[pair.js] API error:', apiError.message);
                 await sock.sendMessage(chatId, {
-                    text: `❌ Impossible de générer le code: ${apiError.message}\n\nEssaie directement sur:\n${settings.pairApiUrl}`,
+                    text: `❌ Failed to generate the code: ${apiError.message}\n\nTry directly at:\n${settings.pairApiUrl}`,
                     contextInfo: {
                         forwardingScore: 1,
                         isForwarded: true,
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363424782348922@newsletter',
-                            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                             serverMessageId: -1
                         }
                     }
@@ -100,15 +100,15 @@ async function pairCommand(sock, chatId, message, q) {
             }
         }
     } catch (error) {
-        console.error('[pair.js] Erreur générale:', error);
+        console.error('[pair.js] General error:', error);
         await sock.sendMessage(chatId, {
-            text: "❌ Une erreur s'est produite. Réessayez ou visite: " + settings.pairApiUrl,
+            text: "❌ An error occurred. Try again or visit: " + settings.pairApiUrl,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363424782348922@newsletter',
-                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                     serverMessageId: -1
                 }
             }

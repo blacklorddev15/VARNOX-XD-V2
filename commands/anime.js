@@ -144,7 +144,7 @@ async function animeCommand(sock, chatId, message, args) {
         await sendAnimu(sock, chatId, message, sub);
     } catch (err) {
         console.error('Error in animu command:', err);
-        await sock.sendMessage(chatId, { text: '❌ Une erreur est survenue lors de fetching animu.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ An error occurred while fetching animu.' }, { quoted: message });
     }
 }
 

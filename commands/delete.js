@@ -1,7 +1,7 @@
 const isAdmin = require('../lib/isAdmin');
 
 async function deleteCommand(sock, chatId, message, senderId) {
-    // Utiliser le store de l'instance courante (défini par botInstance.js)
+    // Use the current instance store (defined by botInstance.js)
     const store = sock.store || { messages: {} };
 
     try {
@@ -129,7 +129,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
         }
 
     } catch (err) {
-        await sock.sendMessage(chatId, { text: 'Échec de la suppression des messages.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: 'Failed to delete messages.' }, { quoted: message });
     }
 }
 

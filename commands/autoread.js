@@ -1,5 +1,5 @@
 /**
- * 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2 - A WhatsApp Bot
+ * 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 - A WhatsApp Bot
  * Autoread Command - Automatically read all messages
  */
 
@@ -26,13 +26,13 @@ async function autoreadCommand(sock, chatId, message) {
         
         if (!message.key.fromMe && !isOwner) {
             await sock.sendMessage(chatId, {
-                text: '❌ Cette commande est réservée au propriétaire !',
+                text: '❌ This command is reserved for the owner!',
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363424782348922@newsletter',
-                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                        newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                         serverMessageId: -1
                     }
                 }
@@ -57,13 +57,13 @@ async function autoreadCommand(sock, chatId, message) {
                 config.activé = false;
             } else {
                 await sock.sendMessage(chatId, {
-                    text: '❌ Option invalide ! Utilisez : .autoread on/off',
+                    text: '❌ Invalid option! Use : .autoread on/off',
                     contextInfo: {
                         forwardingScore: 1,
                         isForwarded: true,
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363424782348922@newsletter',
-                            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                             serverMessageId: -1
                         }
                     }
@@ -80,13 +80,13 @@ async function autoreadCommand(sock, chatId, message) {
         
         // Send confirmation message
         await sock.sendMessage(chatId, {
-            text: `✅ Auto-read has been ${config.activé ? 'activé' : 'désactivé'}!`,
+            text: `✅ Auto-read has been ${config.activé ? 'enabled' : 'disabled'}!`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363424782348922@newsletter',
-                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                     serverMessageId: -1
                 }
             }
@@ -95,13 +95,13 @@ async function autoreadCommand(sock, chatId, message) {
     } catch (error) {
         console.error('Error in autoread command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ Erreur lors du traitement de la commande !',
+            text: '❌ Error while processing the command!',
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363424782348922@newsletter',
-                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                     serverMessageId: -1
                 }
             }
@@ -109,7 +109,7 @@ async function autoreadCommand(sock, chatId, message) {
     }
 }
 
-// Function to check if autoread is activé
+// Function to check if autoread is enabled
 function isAutoreadEnabled() {
     try {
         const config = initConfig();
@@ -187,7 +187,7 @@ async function handleAutoread(sock, message) {
             return true; // Indicates message was marked as read
         }
     }
-    return false; // Autoread is désactivé
+    return false; // Autoread is disabled
 }
 
 module.exports = {

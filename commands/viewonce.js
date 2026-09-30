@@ -3,13 +3,13 @@ const { downloadContentFromMessage, jidNormalizedUser } = require('@whiskeysocke
 const { channelInfo } = require('../lib/messageConfig');
 
 /**
- * vvCommand — ouvre un média vue-unique
+ * vvCommand — opens a view-once media
  * @param {boolean} sendToPv
- *   false (défaut) → renvoie dans la discussion actuelle (.vv)
- *   true           → envoie au PV du compte qui a connecté le bot (.vv2)
+ *   false (default) → replies in the current chat (.vv)
+ *   true            → sends to the PV of the account that connected the bot (.vv2)
  */
 async function vvCommand(sock, chatId, message, sendToPv = false) {
-    // Chercher le message cité (vue-unique ou normal)
+    // Find the quoted message (view-once or normal)
     const ctx    = message.message?.extendedTextMessage?.contextInfo;
     const quoted = ctx?.quotedMessage;
     const senderJid = message.key.participant || message.key.remoteJid;
@@ -34,10 +34,10 @@ async function vvCommand(sock, chatId, message, sendToPv = false) {
     if (!quotedImage && !quotedVideo) {
         await sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
-                `┃⌬┃ ❌ Réponds à un média\n` +
-                `┃⌬┃ vue-unique (image/vidéo).\n` +
+                `┃⌬┃ ❌ Reply to a view-once\n` +
+                `┃⌬┃ media (image/video).\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -47,15 +47,15 @@ async function vvCommand(sock, chatId, message, sendToPv = false) {
 
     try {
         const senderNum = (quotedSenderJid || senderJid || '').split('@')[0];
-        const location  = chatId.endsWith('@g.us') ? chatId : 'Privé';
+        const location  = chatId.endsWith('@g.us') ? chatId : 'Private';
 
         const caption =
-            `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+            `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
             `┃⌬╭━━━━━━━━━━━━━≽\n` +
-            `┃⌬┃ 📩 *Vue unique reçue*\n` +
+            `┃⌬┃ 📩 *View-once received*\n` +
             `╰━━━━━━━━━━━━❍\n` +
-            `┃⌬┃ 👤 De : @${senderNum}\n` +
-            `┃⌬┃ 💬 Groupe : ${location}\n` +
+            `┃⌬┃ 👤 From: @${senderNum}\n` +
+            `┃⌬┃ 💬 Group: ${location}\n` +
             `╰━━━━━━━━━━━━❍\n` +
             `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`;
 
@@ -71,13 +71,13 @@ async function vvCommand(sock, chatId, message, sendToPv = false) {
             await sock.sendMessage(targetJid, { video: buffer, caption, ...channelInfo });
         }
 
-        // Confirmer dans le chat source si vv2
+        // Confirm in the source chat if vv2
         if (sendToPv && targetJid !== chatId) {
             await sock.sendMessage(chatId, {
                 text:
-                    `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
-                    `┃⌬┃ ✅ Média envoyé en PV !\n` +
-                    `┃⌬┃ Consulte tes messages privés.\n` +
+                    `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
+                    `┃⌬┃ ✅ Media sent to PV!\n` +
+                    `┃⌬┃ Check your private messages.\n` +
                     `╰━━━━━━━━━━━━❍`,
                 ...channelInfo
             }, { quoted: message });
@@ -87,9 +87,9 @@ async function vvCommand(sock, chatId, message, sendToPv = false) {
         console.error('[vv/vv2] error:', error.message);
         await sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
-                `┃⌬┃ ❌ Impossible de récupérer\n` +
-                `┃⌬┃ le média.\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
+                `┃⌬┃ ❌ Unable to retrieve\n` +
+                `┃⌬┃ the media.\n` +
                 `╰━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });

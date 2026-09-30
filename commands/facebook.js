@@ -165,7 +165,7 @@ async function facebookCommand(sock, chatId, message) {
 
         // Try URL method first (more reliable)
         try {
-            const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2";
+            const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔";
             
             await sock.sendMessage(chatId, {
                 video: { url: fbvid },
@@ -216,7 +216,7 @@ async function facebookCommand(sock, chatId, message) {
                 }
 
                 // Send the video
-                const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ  𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2";
+                const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ  𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 Ⴆყ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔";
                 
                 await sock.sendMessage(chatId, {
                     video: { url: tempFile },

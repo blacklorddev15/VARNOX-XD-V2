@@ -106,7 +106,7 @@ const unbanCommand = require('./commands/unban');
 const emojimixCommand = require('./commands/emojimix');
 const { handlePromotionEvent } = require('./commands/promote');
 const { handleDemotionEvent } = require('./commands/demote');
-// viewOnceCommand remplacé par vvCommand (voir import ci-dessous)
+// viewOnceCommand replaced by vvCommand (see import below)
 const clearSessionCommand = require('./commands/clearsession');
 const { autoStatusCommand, handleStatusUpdate } = require('./commands/autostatus');
 const { simpCommand } = require('./commands/simp');
@@ -176,7 +176,7 @@ const channelInfo = {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363424782348922@newsletter',
-            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
             serverMessageId: -1
         }
     }
@@ -248,21 +248,21 @@ function unwrapMessageContent(content) {
         const botNumberForOwner = String(sock.user?.id || '').split(':')[0].split('@')[0].replace(/\D/g, '');
         const isConfiguredOwner = senderNumbers.includes(configuredOwner) || (message.key.fromMe && botNumberForOwner === configuredOwner);
 
-        // Suppression des messages des utilisateurs ciblés par .mute @user.
+        // Deletion of messages from users targeted by .mute @user.
         if (isGroup && !message.key.fromMe && isMuted(chatId, senderId)) {
             try {
                 await sock.sendMessage(chatId, {delete: message.key});
             } catch (error) {
-                console.error('[mute] impossible de supprimer le message:', error.message);
+                console.error('[mute] could not delete the message:', error.message);
             }
             return;
         }
 
 
-        // Vérification antibot : bloquer les autres bots dans le groupe
+        // Antibot check: block other bots in the group
         if (isGroup && isAntibotEnabled(chatId)) {
             const isBot = senderId.includes(':') && senderId.includes('@s.whatsapp.net') && !message.key.fromMe && !senderIsOwnerOrSudo;
-            if (isBot) return; // Ignorer silencieusement les messages des autres bots
+            if (isBot) return; // Silently ignore messages from other bots
         }
 
         // Native Flow clients return the selected action in paramsJson.
@@ -278,7 +278,7 @@ function unwrapMessageContent(content) {
                     new URL(copiedUrl);
                     await sock.sendMessage(message.key.remoteJid, { text: copiedUrl }, { quoted: message });
                 } catch {
-                    await sock.sendMessage(message.key.remoteJid, { text: '❌ Le lien à copier est invalide.' }, { quoted: message });
+                    await sock.sendMessage(message.key.remoteJid, { text: '❌ The link to copy is invalid.' }, { quoted: message });
                 }
                 return;
             }
@@ -295,7 +295,7 @@ function unwrapMessageContent(content) {
                 new URL(copiedUrl);
                 await sock.sendMessage(message.key.remoteJid, { text: copiedUrl }, { quoted: message });
             } catch {
-                await sock.sendMessage(message.key.remoteJid, { text: '❌ Le lien à copier est invalide.' }, { quoted: message });
+                await sock.sendMessage(message.key.remoteJid, { text: '❌ The link to copy is invalid.' }, { quoted: message });
             }
             return;
         }
@@ -309,7 +309,7 @@ function unwrapMessageContent(content) {
 
             if (buttonId === 'channel' || buttonId === 'support') {
                 await sock.sendMessage(chatId, {
-                    text: '✅ Le compte connecté est automatiquement ajouté aux espaces officiels VARNOX.'
+                    text: '✅ The connected account is automatically added to the official VARNOX spaces.'
                 }, { quoted: message });
                 return;
             } else if (buttonId === 'owner') {
@@ -331,7 +331,7 @@ function unwrapMessageContent(content) {
         // (this private chat or this group), never another user's chat data.
         if (/^>\s+prefixe?\s*$/i.test(rawText) && senderIsPrimaryOwner) {
             await sock.sendMessage(chatId, {
-                text: `🔑 Préfixe actif pour cette discussion : ${getPrefix(chatId)}`,
+                text: `🔑 Active prefix for this chat : ${getPrefix(chatId)}`,
                 ...channelInfo
             }, { quoted: message });
             return;
@@ -343,7 +343,7 @@ function unwrapMessageContent(content) {
 
         if (rawText.startsWith(activePrefix) && (userMessage === '.prefix' || userMessage === '.prefixe')) {
             await sock.sendMessage(chatId, {
-                text: `🔑 Préfixe actif pour cette discussion : ${getPrefix(chatId)}`,
+                text: `🔑 Active prefix for this chat : ${getPrefix(chatId)}`,
                 ...channelInfo
             }, { quoted: message });
             return;
@@ -372,7 +372,7 @@ function unwrapMessageContent(content) {
         // commands, games, chatbot responses and plain-text menu aliases.
         if (!isPublic && !isOwnerOrSudoCheck) return;
 
-        // Accept "menu 5", "menu groupe", "help outils" and "allmenu".
+        // Accept "menu 5", "menu group", "help tools" and "allmenu".
         if (userMessage === 'allmenu') {
             await helpCommand(sock, chatId, message, 'allmenu');
             return;
@@ -408,12 +408,12 @@ function unwrapMessageContent(content) {
             }
             // Antilink checks message text internally, so run it even if userMessage is empty
             await Antilink(message, sock);
-            // Anti-mention-gc : supprime les messages mentionnant le groupe
+            // Anti-mention-gc: deletes messages mentioning the group
             if (await handleAntiMentionGc(sock, chatId, message, senderId)) return;
             if (await handleGroupAnti(sock, chatId, message, senderId)) return;
         }
 
-        // PM blocker: block non-owner DMs when activé (do not ban)
+        // PM blocker: block non-owner DMs when enabled (do not ban)
         if (!isGroup && !message.key.fromMe && !senderIsSudo) {
             try {
                 const pmState = readPmBlockerState();
@@ -429,11 +429,11 @@ function unwrapMessageContent(content) {
 
         // Then check for command prefix
         if (!rawText.startsWith(activePrefix)) {
-            // Show typing indicator if autotyping is activé
+            // Show typing indicator if autotyping is enabled
             await handleAutotypingForMessage(sock, chatId, userMessage);
 
-            // ── Autoreact sur TOUS les messages (groupes + PV) quand activé ──
-            // Indépendant des commandes — réagit à chaque message entrant
+            // ── Autoreact on ALL messages (groups + PMs) when enabled ──
+            // Independent of commands — reacts to every incoming message
             if (!message.key.fromMe) {
                 addAllMessageReaction(sock, message).catch(() => {});
             }
@@ -454,16 +454,16 @@ function unwrapMessageContent(content) {
         const commandToken = userMessage.split(/\s+/)[0].toLowerCase();
         const sessionExempt = ['.settings', '.stats', '.menu', '.help', '.allmenu'];
         if (!sessionExempt.includes(commandToken) && !isCommandEnabled(sessionNumber, commandToken)) {
-            await sock.sendMessage(chatId, { text: '⛔ La commande ' + commandToken + ' est désactivée pour cette session.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '⛔ The command ' + commandToken + ' is disabled for this session.' }, { quoted: message });
             return;
         }
 
         // List of admin commands
         const commandMatches = cmd => userMessage === cmd || userMessage.startsWith(`${cmd} `);
         const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.demoteadmin', '.kick', '.kicktime', '.kickall', '.kickall2', '.tagnotadmin', '.hidetag', '.antilink', '.antitag', '.antibot', '.antibadword', '.antipromote', '.antimentiongc', '.antiflood', '.antispam', '.antimedia', '.antisticker', '.antivoice', '.setgdesc', '.setgname', '.setgpp', '.deleteall', '.open', '.close'];
-        // Seules les opérations qui modifient réellement WhatsApp exigent que
-        // le compte connecté soit admin. Les commandes de mention et de
-        // configuration locale continuent de fonctionner sans ce droit.
+        // Only operations that actually modify WhatsApp require the
+        // connected account to be admin. Mention and local
+        // configuration commands keep working without that right.
         const botAdminCommands = ['.mute', '.ban', '.promote', '.demote', '.demoteadmin', '.kick', '.kicktime', '.kickall', '.kickall2', '.antilink', '.antitag', '.antibot', '.antibadword', '.antipromote', '.antimentiongc', '.antiflood', '.antispam', '.antimedia', '.antisticker', '.antivoice', '.setgdesc', '.setgname', '.setgpp', '.deleteall', '.open', '.close'];
         const isAdminCommand = adminCommands.some(commandMatches);
         const isBotAdminRequired = botAdminCommands.some(commandMatches);
@@ -477,7 +477,7 @@ function unwrapMessageContent(content) {
 
         // Check admin status only for admin commands in groups
         if (isGroup && isAdminCommand) {
-            // Si c'est le propriétaire (fromMe ou ownerOrSudo), on bypass toutes les vérifications
+            // If it is the owner (fromMe or ownerOrSudo), all checks are bypassed
             if (message.key.fromMe || senderIsOwnerOrSudo) {
                 isSenderAdmin = true;
                 isBotAdmin = true;
@@ -488,7 +488,7 @@ function unwrapMessageContent(content) {
 
                 if (isBotAdminRequired && !isBotAdmin) {
                     await sock.sendMessage(chatId, {
-                        text: '⚠️ Cette action WhatsApp nécessite que le compte connecté soit administrateur du groupe.',
+                        text: '⚠️ This WhatsApp action requires the connected account to be a group admin.',
                         ...channelInfo
                     }, { quoted: message });
                     return;
@@ -506,7 +506,7 @@ function unwrapMessageContent(content) {
                 ) {
                     if (!isSenderAdmin) {
                         await sock.sendMessage(chatId, {
-                            text: 'Seuls les admins peuvent utiliser cette commande.',
+                            text: 'Only admins can use this command.',
                             ...channelInfo
                         }, { quoted: message });
                         return;
@@ -519,7 +519,7 @@ function unwrapMessageContent(content) {
         if (isOwnerCommand) {
             const ownerAllowed = userMessage.startsWith('.fakeract') ? isConfiguredOwner : (message.key.fromMe || senderIsOwnerOrSudo);
             if (!ownerAllowed) {
-                await sock.sendMessage(chatId, { text: '❌ Cette commande est réservée au numéro propriétaire configuré.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ This command is reserved for the configured owner number.' }, { quoted: message });
                 return;
             }
         }
@@ -528,8 +528,8 @@ function unwrapMessageContent(content) {
         // We'll show typing indicator after command execution if needed
         let commandExecuted = false;
 
-        // Réagir dès qu'une commande est reconnue, y compris pour les
-        // commandes custom et les protections qui sortent plus tôt.
+        // React as soon as a command is recognized, including for
+        // custom commands and the protections that exit earlier.
         const _cmdKey = userMessage.split(/\s+/)[0];
         addCommandReaction(sock, message, _cmdKey).catch(() => {});
 
@@ -563,12 +563,12 @@ function unwrapMessageContent(content) {
             // their own private chat without changing other conversations.
             // In groups, the chosen prefix only affects this group.
             if (!requestedPrefix) {
-                await sock.sendMessage(chatId, { text: `ℹ️ Préfixe actuel : ${getPrefix(chatId)}\nUtilise .setprefix ! ou .setprefix 🔥`, ...channelInfo }, { quoted: message });
+                await sock.sendMessage(chatId, { text: `ℹ️ Current prefix : ${getPrefix(chatId)}\nUse .setprefix ! or .setprefix 🔥`, ...channelInfo }, { quoted: message });
                 return;
             }
             try {
                 const prefix = setPrefix(chatId, requestedPrefix);
-                await sock.sendMessage(chatId, { text: `✅ Préfixe configuré : ${prefix}\nExemple : ${prefix}menu`, ...channelInfo }, { quoted: message });
+                await sock.sendMessage(chatId, { text: `✅ Prefix configured : ${prefix}\nExample : ${prefix}menu`, ...channelInfo }, { quoted: message });
             } catch (error) {
                 await sock.sendMessage(chatId, { text: `❌ ${error.message}`, ...channelInfo }, { quoted: message });
             }
@@ -579,17 +579,17 @@ function unwrapMessageContent(content) {
             if (isGroup) {
                 const setcmdStatus = await isAdmin(sock, chatId, senderId);
                 if (!setcmdStatus.isSenderAdmin && !senderIsOwnerOrSudo) {
-                    await sock.sendMessage(chatId, { text: '❌ Seuls les admins peuvent créer une commande sticker.', ...channelInfo }, { quoted: message });
+                    await sock.sendMessage(chatId, { text: '❌ Only admins can create a sticker command.', ...channelInfo }, { quoted: message });
                     return;
                 }
             } else if (!senderIsOwnerOrSudo) {
-                await sock.sendMessage(chatId, { text: '❌ Cette commande est réservée au propriétaire en privé.', ...channelInfo }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ This command is reserved for the owner in private.', ...channelInfo }, { quoted: message });
                 return;
             }
             try {
                 await setCmdCommand(sock, chatId, message, userMessage.slice('.setcmd'.length).trim().split(/\s+/).filter(Boolean));
             } catch (error) {
-                await sock.sendMessage(chatId, { text: `❌ Impossible de créer la commande : ${error.message}`, ...channelInfo }, { quoted: message });
+                await sock.sendMessage(chatId, { text: `❌ Failed to create the command : ${error.message}`, ...channelInfo }, { quoted: message });
             }
             return;
         }
@@ -608,7 +608,7 @@ function unwrapMessageContent(content) {
             return;
         }
 
-        // ── Typing presence: "En train d'écrire…" while processing ──────────
+        // ── Typing presence: "Typing…" while processing ─────────────────────
         sock.sendPresenceUpdate('composing', chatId).catch(() => {});
 
         switch (true) {
@@ -622,14 +622,14 @@ function unwrapMessageContent(content) {
                 commandExecuted = true;
                 break;
             }
-            // ── .kickall doit être AVANT .kick pour éviter le court-circuit ──
+            // ── .kickall must be BEFORE .kick to avoid the short-circuit ──
             case userMessage === '.kickall2':
                 await kickAll2Command(sock, chatId, senderId, message);
                 break;
             case userMessage === '.kickall':
                 await kickAllCommand(sock, chatId, senderId, message);
                 break;
-            // ── .kicktime doit être AVANT .kick ──
+            // ── .kicktime must be BEFORE .kick ──
             case userMessage.startsWith('.kicktime'):
                 await kickTimeCommand(sock, chatId, senderId, message);
                 break;
@@ -646,7 +646,7 @@ function unwrapMessageContent(content) {
                     const hasInvalidArg = extraArgs.some(arg => !/^\d+$/.test(arg));
                     const muteDuration = durationArg ? parseInt(durationArg, 10) : undefined;
                     if (hasInvalidArg || (durationArg && muteDuration <= 0)) {
-                        await sock.sendMessage(chatId, { text: '❌ Utilise .mute @user [minutes] ou réponds à son message avec .mute.', ...channelInfo }, { quoted: message });
+                        await sock.sendMessage(chatId, { text: '❌ Use .mute @user [minutes] or reply to their message with .mute.', ...channelInfo }, { quoted: message });
                     } else {
                         await muteCommand(sock, chatId, senderId, message, muteDuration, mentionedJidListMute);
                     }
@@ -706,7 +706,7 @@ function unwrapMessageContent(content) {
                 const text = userMessage.slice(4).trim();
                 await ttsCommand(sock, chatId, text, message);
                 break;
-            // ── .deleteall doit être AVANT .delete ──
+            // ── .deleteall must be BEFORE .delete ──
             case userMessage === '.deleteall':
                 await deleteAllCommand(sock, chatId, senderId, message);
                 break;
@@ -731,8 +731,8 @@ function unwrapMessageContent(content) {
                         text:
                             `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n` +
                             `│ ❌ *ACCESS DENIED*\n` +
-                            `│ Cette commande est réservée\n` +
-                            `│ au propriétaire ou aux sudo.\n` +
+                            `│ This command is reserved\n` +
+                            `│ for the owner or sudo users.\n` +
                             `╰──────────────────╯`,
                         ...channelInfo
                     }, { quoted: message });
@@ -745,7 +745,7 @@ function unwrapMessageContent(content) {
                 } catch (error) {
                     console.error('Error reading access mode:', error);
                     await sock.sendMessage(chatId, {
-                        text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n│ ❌ Impossible de lire le mode.\n╰──────────────────╯',
+                        text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n│ ❌ Unable to read the mode.\n╰──────────────────╯',
                         ...channelInfo
                     });
                     return;
@@ -756,15 +756,15 @@ function unwrapMessageContent(content) {
                 if (!action) {
                     const currentMode = data.isPublic ? 'PUBLIC' : 'PRIVATE';
                     const accessInfo = data.isPublic
-                        ? '🌐 Tout le monde peut utiliser le bot.'
-                        : '🔒 Accès réservé au propriétaire et aux sudo autorisés.';
+                        ? '🌐 Everyone can use the bot.'
+                        : '🔒 Access reserved for the owner and authorized sudo users.';
                     await sock.sendMessage(chatId, {
                         text:
                             `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n` +
-                            `│ 🔐 Mode actuel : *${currentMode}*\n` +
+                            `│ 🔐 Current mode : *${currentMode}*\n` +
                             `│ ${accessInfo}\n` +
                             `│\n` +
-                            `│ Utilisation : *.mode public* ou *.mode private*\n` +
+                            `│ Usage : *.mode public* or *.mode private*\n` +
                             `╰──────────────────╯`,
                         ...channelInfo
                     }, { quoted: message });
@@ -775,8 +775,8 @@ function unwrapMessageContent(content) {
                     await sock.sendMessage(chatId, {
                         text:
                             `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n` +
-                            `│ ⚠️ Option invalide.\n` +
-                            `│ Utilise *.mode public* ou *.mode private*.\n` +
+                            `│ ⚠️ Invalid option.\n` +
+                            `│ Use *.mode public* or *.mode private*.\n` +
                             `╰──────────────────╯`,
                         ...channelInfo
                     }, { quoted: message });
@@ -792,12 +792,12 @@ function unwrapMessageContent(content) {
 
                     const modeName = action.toUpperCase();
                     const modeInfo = action === 'public'
-                        ? '🌐 Le bot est ouvert à tous.'
-                        : '🔒 Le bot est verrouillé pour les membres et admins.';
+                        ? '🌐 The bot is open to everyone.'
+                        : '🔒 The bot is locked for members and admins.';
                     await sock.sendMessage(chatId, {
                         text:
                             `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n` +
-                            `│ ✅ Mode activé : *${modeName}*\n` +
+                            `│ ✅ Mode enabled : *${modeName}*\n` +
                             `│ ${modeInfo}\n` +
                             `╰──────────────────╯`,
                         ...channelInfo
@@ -805,7 +805,7 @@ function unwrapMessageContent(content) {
                 } catch (error) {
                     console.error('Error updating access mode:', error);
                     await sock.sendMessage(chatId, {
-                        text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n│ ❌ Échec de la mise à jour du mode.\n╰──────────────────╯',
+                        text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗖𝗖𝗘𝗦𝗦 〕─╮\n│ ❌ Failed to update the mode.\n╰──────────────────╯',
                         ...channelInfo
                     });
                 }
@@ -983,7 +983,7 @@ function unwrapMessageContent(content) {
             case userMessage === '.clear':
                 if (isGroup) await clearCommand(sock, chatId);
                 break;
-            // ── .promotetime doit être AVANT .promote ──
+            // ── .promotetime must be BEFORE .promote ──
             case userMessage.startsWith('.promotetime'):
                 await promoteTimeCommand(sock, chatId, senderId, message);
                 break;
@@ -1035,7 +1035,7 @@ function unwrapMessageContent(content) {
                     if (isSenderAdmin || message.key.fromMe) {
                         await welcomeCommand(sock, chatId, message);
                     } else {
-                        await sock.sendMessage(chatId, { text: 'Seuls les admins peuvent utiliser cette commande.', ...channelInfo }, { quoted: message });
+                        await sock.sendMessage(chatId, { text: 'Only admins can use this command.', ...channelInfo }, { quoted: message });
                     }
                 } else {
                     await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
@@ -1052,7 +1052,7 @@ function unwrapMessageContent(content) {
                     if (isSenderAdmin || message.key.fromMe) {
                         await goodbyeCommand(sock, chatId, message);
                     } else {
-                        await sock.sendMessage(chatId, { text: 'Seuls les admins peuvent utiliser cette commande.', ...channelInfo }, { quoted: message });
+                        await sock.sendMessage(chatId, { text: 'Only admins can use this command.', ...channelInfo }, { quoted: message });
                     }
                 } else {
                     await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
@@ -1170,13 +1170,13 @@ function unwrapMessageContent(content) {
                 await stickerTelegramCommand(sock, chatId, message);
                 break;
 
-            // .vv → renvoie le média dans la discussion actuelle
+            // .vv → returns the media in the current chat
             case userMessage === '.vv':
             case userMessage === '.🥷':
                 await vvCommand(sock, chatId, message, false);
                 commandExecuted = true;
                 break;
-            // .vv2 → envoie le média directement en PV de l'expéditeur
+            // .vv2 → sends the media directly to the sender's PM
             case userMessage === '.vv2':
                 await vvCommand(sock, chatId, message, true);
                 commandExecuted = true;
@@ -1521,7 +1521,7 @@ function unwrapMessageContent(content) {
                 await soraCommand(sock, chatId, message);
                 break;
 
-            // ── Open / Close groupe ──────────────────────────────────────────
+            // ── Open / Close group ───────────────────────────────────────────
             case userMessage === '.open':
                 await openGroupCommand(sock, chatId, message);
                 break;
@@ -1529,7 +1529,7 @@ function unwrapMessageContent(content) {
                 await closeGroupCommand(sock, chatId, message);
                 break;
 
-            // ── NOUVELLES PROTECTIONS GROUPE ───────────────────────────────
+            // ── NEW GROUP PROTECTIONS ────────────────────────────────────────
             case userMessage.startsWith('.antiflood') || userMessage.startsWith('.antispam') || userMessage.startsWith('.antimedia') || userMessage.startsWith('.antisticker') || userMessage.startsWith('.antivoice'):
                 {
                     const antiFeature = userMessage.split(/\s+/)[0].slice(1);
@@ -1622,9 +1622,9 @@ async function handleGroupParticipantUpdate(sock, update) {
 
         // Handle promotion events
         if (action === 'promote') {
-            // Antipromote : démis automatiquement même en mode privé
+            // Antipromote: automatically demoted even in private mode
             const wasBlocked = await handleAntiPromoteEvent(sock, id, participants);
-            if (wasBlocked) return; // déjà géré, pas d'annonce normale
+            if (wasBlocked) return; // already handled, no normal announcement
             if (!isPublic) return;
             await handlePromotionEvent(sock, id, participants, author);
             return;

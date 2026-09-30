@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VARNOX XD V2 — Connexion</title>
+  <title>VARNOX X ULTRA — Connection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -674,8 +674,8 @@
 <main class="page-shell">
   <header class="page-intro">
     <div class="eyebrow">Secure pairing portal</div>
-    <h1 class="page-heading">Bienvenue sur <strong>VARNOX-XD V2</strong></h1>
-    <p class="page-copy">Découvre l’expérience, puis connecte ton WhatsApp au bot en quelques secondes.</p>
+    <h1 class="page-heading">Welcome to <strong>VARNOX-XD V2</strong></h1>
+    <p class="page-copy">Discover the experience, then connect your WhatsApp to the bot in seconds.</p>
   </header>
 
   <section class="card" aria-labelledby="pairing-title">
@@ -690,14 +690,14 @@
         </div>
       </div>
       <div class="logo-title" id="pairing-title">VARNOX-XD V2</div>
-      <div class="logo-sub">Générateur de Code de Pairage</div>
+      <div class="logo-sub">Pairing Code Generator</div>
     </div>
 
     <!-- Steps — 3 only -->
     <div class="steps-row" id="stepsEl">
       <div class="step-item">
         <div class="step-num active" id="sn1">1</div>
-        <div class="step-lbl active" id="sl1">Numéro</div>
+        <div class="step-lbl active" id="sl1">Number</div>
       </div>
       <div class="step-line"></div>
       <div class="step-item">
@@ -707,7 +707,7 @@
       <div class="step-line"></div>
       <div class="step-item">
         <div class="step-num" id="sn3">3</div>
-        <div class="step-lbl" id="sl3">Connecté</div>
+        <div class="step-lbl" id="sl3">Connected</div>
       </div>
     </div>
 
@@ -715,13 +715,13 @@
     <div class="info-card">
       <div class="info-icon">ℹ</div>
       <div>
-        <div class="info-title">Connexion rapide</div>
-        <div class="info-body">Entre ton numéro WhatsApp, entre le code affiché dans ton app, et c'est tout — aucun Session ID, aucune configuration supplémentaire.</div>
+        <div class="info-title">Quick connection</div>
+        <div class="info-body">Enter your WhatsApp number, enter the code shown in your app, and that's it — no Session ID, no extra configuration.</div>
       </div>
     </div>
 
     <!-- Phone input -->
-    <div class="lbl">Numéro de téléphone</div>
+    <div class="lbl">Phone number</div>
     <div class="input-shell">
       <span class="input-ph-icon">📞</span>
       <div class="input-divider"></div>
@@ -736,20 +736,20 @@
     </div>
     <div class="input-hint">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 2a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm0 3.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-.5 3h1v3h-1V9.5z"/></svg>
-      Indicatif pays inclus, sans + ni espaces (ex : 224 pour la Guinée)
+      Country code included, without + or spaces (e.g.: 224 for Guinea)
     </div>
 
     <!-- Generate button -->
     <button class="btn-gen" id="btnGen" onclick="generate()">
-      <span class="btn-bolt" aria-hidden="true">✦</span> Générer
+      <span class="btn-bolt" aria-hidden="true">✦</span> Generate
     </button>
 
     <!-- Code display -->
     <div class="code-box idle" id="codeBox">
       <div class="code-result">
-        <span id="codeInner">Entrez votre numéro pour<br>générer le code</span>
+        <span id="codeInner">Enter your number to<br>generate the code</span>
         <button class="copy-code" id="copyCodeBtn" type="button" onclick="copyPairingCode()" hidden>
-          ⧉ Copier le code
+          ⧉ Copy the code
         </button>
       </div>
     </div>
@@ -758,30 +758,30 @@
     <!-- Success panel (replaces old session ID panel) -->
     <div class="success-panel" id="successPanel">
       <span class="success-icon">🎉</span>
-      <div class="success-title">Bot connecté avec succès !</div>
+      <div class="success-title">Bot connected successfully!</div>
       <div class="success-sub">
-        Ton bot WhatsApp est maintenant actif et opérationnel.<br>
-        Aucun Session ID n'est nécessaire.
+        Your WhatsApp bot is now active and operational.<br>
+        No Session ID is required.
       </div>
 
       <div class="how-list">
-        <div class="how-title">Pour utiliser le bot</div>
+        <div class="how-title">How to use the bot</div>
         <div class="how-step">
           <div class="how-n">1</div>
-          <div>Envoie <span>.help</span> au numéro du bot pour voir toutes les commandes</div>
+          <div>Send <span>.help</span> to the bot number to see all the commands</div>
         </div>
         <div class="how-step">
           <div class="how-n">2</div>
-          <div>Ajoute le bot à un groupe et rends-le admin pour les commandes de groupe</div>
+          <div>Add the bot to a group and make it admin for group commands</div>
         </div>
         <div class="how-step">
           <div class="how-n">3</div>
-          <div>Le bot redémarre automatiquement si le serveur redémarre — ta session est sauvegardée</div>
+          <div>The bot restarts automatically if the server restarts — your session is saved</div>
         </div>
       </div>
 
       <button class="btn-reconnect" onclick="reset()">
-        🔄 Connecter un autre numéro
+        🔄 Connect another number
       </button>
     </div>
 
@@ -790,7 +790,7 @@
 </main>
 
 <div class="footer">
-  © 2026 <span>VARNOX XD V2</span> | Powered By VARNOX
+  © 2026 <span>VARNOX X ULTRA</span> | Powered By VARNOX
 </div>
 
 <script>
@@ -800,7 +800,7 @@ let polling = null;
 let currentPairingCode = '';
 let copyResetTimer = null;
 
-function setCopyButton(visible, label = '⧉ Copier le code') {
+function setCopyButton(visible, label = '⧉ Copy the code') {
   const button = document.getElementById('copyCodeBtn');
   if (!button) return;
   button.hidden = !visible;
@@ -833,7 +833,7 @@ async function copyPairingCode() {
   const button = document.getElementById('copyCodeBtn');
   if (!button) return;
   clearTimeout(copyResetTimer);
-  button.textContent = copied ? '✓ Code copié' : 'Copie impossible';
+  button.textContent = copied ? '✓ Code copied' : 'Copy failed';
   copyResetTimer = setTimeout(() => {
     if (currentPairingCode) setCopyButton(true);
   }, 2200);
@@ -883,7 +883,7 @@ function startPoll(num) {
         ci.innerHTML = `<span class="code-err">❌ ${d.error}</span>`;
         currentPairingCode = '';
         setCopyButton(false);
-        sm.textContent = 'Le code précédent est expiré. Génère un nouveau code et réessaie.';
+        sm.textContent = 'The previous code has expired. Generate a new code and try again.';
         sm.className = 'status err';
         document.getElementById('btnGen').disabled = false;
       }
@@ -897,7 +897,7 @@ function showSuccess() {
   document.getElementById('statusMsg').textContent = '';
   document.getElementById('statusMsg').className   = 'status';
   document.getElementById('codeBox').className = 'code-box idle';
-  document.getElementById('codeInner').textContent = '✅ Appareil lié avec succès';
+  document.getElementById('codeInner').textContent = '✅ Device linked successfully';
   currentPairingCode = '';
   setCopyButton(false);
   setStep(3);
@@ -909,14 +909,14 @@ function reset() {
   document.getElementById('successPanel').style.display = 'none';
   document.getElementById('phoneInput').value = '';
   document.getElementById('codeBox').className = 'code-box idle';
-   document.getElementById('codeInner').innerHTML = 'Entrez votre numéro pour<br>générer le code';
+   document.getElementById('codeInner').innerHTML = 'Enter your number to<br>generate the code';
   currentPairingCode = '';
   clearTimeout(copyResetTimer);
   setCopyButton(false);
   document.getElementById('statusMsg').textContent = '';
   document.getElementById('statusMsg').className   = 'status';
   document.getElementById('btnGen').disabled = false;
-   document.getElementById('btnGen').innerHTML = '<span class="btn-bolt" aria-hidden="true">✦</span> Générer';
+   document.getElementById('btnGen').innerHTML = '<span class="btn-bolt" aria-hidden="true">✦</span> Generate';
   setStep(1);
   document.getElementById('phoneInput').focus();
 }
@@ -930,7 +930,7 @@ async function generate() {
 
   const num = document.getElementById('phoneInput').value.trim().replace(/\D/g, '');
   if (!num || num.length < 7 || num.length > 15) {
-    sm.textContent = '⚠ Entre un numéro valide avec l\'indicatif pays (sans + ni espaces).';
+    sm.textContent = '⚠ Enter a valid number with the country code (without + or spaces).';
     sm.className   = 'status err';
     document.getElementById('phoneInput').focus();
     return;
@@ -941,9 +941,9 @@ async function generate() {
   setStep(2);
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Connexion en cours…';
+  btn.innerHTML = '<span class="spin"></span> Connecting…';
   cb.className  = 'code-box idle';
-  ci.textContent = 'Connexion à WhatsApp…';
+  ci.textContent = 'Connecting to WhatsApp…';
   currentPairingCode = '';
   setCopyButton(false);
   sm.textContent = '';
@@ -955,13 +955,13 @@ async function generate() {
 
     if (data.error) {
       cb.className = 'code-box error';
-      ci.innerHTML = `<span class="code-err">❌ ${data.message || 'Erreur de génération du code'}</span>`;
-      sm.textContent = 'Vérifie ton numéro et réessaie.';
+      ci.innerHTML = `<span class="code-err">❌ ${data.message || 'Code generation error'}</span>`;
+      sm.textContent = 'Check your number and try again.';
       sm.className   = 'status err';
       setStep(1);
     } else if (data.already) {
       cb.className   = 'code-box idle';
-      ci.textContent = '✅ Déjà connecté';
+      ci.textContent = '✅ Already connected';
       showSuccess();
     } else {
       const code = data.code || '';
@@ -969,21 +969,21 @@ async function generate() {
       ci.innerHTML = `<span class="code-val">${code}</span>`;
       currentPairingCode = code;
       setCopyButton(true);
-      sm.textContent = '⏳ Entre ce code dans WhatsApp → Paramètres → Appareils connectés → Lier un appareil';
+      sm.textContent = '⏳ Enter this code in WhatsApp → Settings → Linked devices → Link a device';
       sm.className   = 'status wait';
       startPoll(num);
     }
   } catch (_) {
     cb.className = 'code-box error';
-    ci.innerHTML = '<span class="code-err">❌ Impossible de contacter le serveur. Réessaie.</span>';
+    ci.innerHTML = '<span class="code-err">❌ Unable to reach the server. Try again.</span>';
     currentPairingCode = '';
     setCopyButton(false);
-    sm.textContent = 'Erreur réseau. Recharge la page et réessaie.';
+    sm.textContent = 'Network error. Reload the page and try again.';
     sm.className   = 'status err';
     setStep(1);
   } finally {
     btn.disabled = false;
-     btn.innerHTML = '<span class="btn-bolt" aria-hidden="true">✦</span> Générer';
+     btn.innerHTML = '<span class="btn-bolt" aria-hidden="true">✦</span> Generate';
   }
 }
 

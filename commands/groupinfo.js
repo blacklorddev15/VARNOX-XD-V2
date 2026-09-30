@@ -9,17 +9,17 @@ function getParticipantNumber(jid) {
 }
 
 function getCreationDate(creation) {
-    if (!creation) return 'Inconnue';
+    if (!creation) return 'Unknown';
 
     const rawTimestamp = Number(creation);
-    if (!Number.isFinite(rawTimestamp)) return 'Inconnue';
+    if (!Number.isFinite(rawTimestamp)) return 'Unknown';
 
     // Baileys normally provides seconds, but accept milliseconds as well.
     const timestamp = rawTimestamp < 1e12
         ? rawTimestamp * 1000
         : rawTimestamp;
     const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return 'Inconnue';
+    if (Number.isNaN(date.getTime())) return 'Unknown';
 
     return new Intl.DateTimeFormat('fr-FR', {
         timeZone: 'Africa/Conakry',
@@ -30,7 +30,7 @@ function getCreationDate(creation) {
 
 async function getParticipantName(sock, participant) {
     const jid = participant?.id || participant?.jid || participant?.lid;
-    if (!jid) return 'Nom inconnu';
+    if (!jid) return 'Unknown name';
 
     try {
         if (typeof sock.getName === 'function') {
@@ -38,7 +38,7 @@ async function getParticipantName(sock, participant) {
             if (name && !String(name).startsWith('+')) return String(name);
         }
     } catch (error) {
-        console.warn('[groupinfo] impossible de lire le nom du participant:', error.message);
+        console.warn('[groupinfo] unable to read the participant name:', error.message);
     }
 
     return participant.notify || participant.name || `+${getParticipantNumber(jid)}`;
@@ -66,9 +66,9 @@ async function groupInfoCommand(sock, chatId, msg) {
             ? adminEntries.map((admin, index) =>
                 `┃⌬┃ ${index + 1}. @${getParticipantNumber(admin.jid)}`
             ).join('\n')
-            : '┃⌬┃ Aucun administrateur trouvé';
+            : '┃⌬┃ No admin found';
 
-        let ownerLine = 'Inconnu';
+        let ownerLine = 'Unknown';
         let ownerMention;
         if (ownerJid) {
             ownerLine = `@${getParticipantNumber(ownerJid)}`;
@@ -76,14 +76,14 @@ async function groupInfoCommand(sock, chatId, msg) {
         }
 
         const text = `
-╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⟫──╮
-┃⌬┃🏷️ Nom : ${groupMetadata.subject || 'Sans nom'}
+╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⟫──╮
+┃⌬┃🏷️ Name: ${groupMetadata.subject || 'Unnamed'}
 ┃⌬┃🆔 ID : ${chatId}
-┃⌬┃👥 Membres : ${participants.length}
-┃⌬┃🛡️ Administrateurs :
+┃⌬┃👥 Members: ${participants.length}
+┃⌬┃🛡️ Admins:
 ${adminLines}
-┃⌬┃👑 Propriétaire : ${ownerLine}
-┃⌬┃📜 Créer le : ${getCreationDate(groupMetadata.creation)}
+┃⌬┃👑 Owner: ${ownerLine}
+┃⌬┃📜 Created on: ${getCreationDate(groupMetadata.creation)}
 ╰━━━━━━━━━━━━❍`.trim();
 
         const mentions = [
@@ -108,10 +108,10 @@ ${adminLines}
         try {
             await sock.sendMessage(chatId, messageContent, { quoted: msg });
         } catch (sendError) {
-            // Une URL de photo peut expirer entre sa récupération et son envoi.
-            // Le texte reste utile et évite que la commande échoue entièrement.
+            // A photo URL can expire between being fetched and sent.
+            // The text remains useful and prevents the command from failing entirely.
             if (!profilePicture) throw sendError;
-            console.warn('[groupinfo] envoi de la photo impossible, envoi du texte:', sendError.message);
+            console.warn('[groupinfo] photo send failed, sending text:', sendError.message);
             await sock.sendMessage(chatId, {
                 text,
                 mentions,
@@ -121,7 +121,7 @@ ${adminLines}
     } catch (error) {
         console.error('Error in groupinfo command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible de récupérer les informations réelles de ce groupe.',
+            text: '❌ Failed to retrieve the real information of this group.',
             ...channelInfo,
         }, { quoted: msg });
     }

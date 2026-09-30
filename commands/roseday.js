@@ -16,7 +16,7 @@ async function rosedayCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, { text: rosedayMessage }, { quoted: message });
     } catch (error) {
         console.error('Error in roseday command:', error);
-        await sock.sendMessage(chatId, { text: '❌ Failed to get roseday quote. Réessayez plus tard!' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Failed to get roseday quote. Try again later!' }, { quoted: message });
     }
 }
 

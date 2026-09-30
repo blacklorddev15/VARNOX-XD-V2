@@ -5,7 +5,7 @@ async function demoteCommand(sock, chatId, mentionedJids, message) {
         // First check if it's a group
         if (!chatId.endsWith('@g.us')) {
             await sock.sendMessage(chatId, {
-                text: 'Cette commande ne fonctionne que dans les groupes !'
+                text: 'This command only works in groups!'
             });
             return;
         }
@@ -35,7 +35,7 @@ async function demoteCommand(sock, chatId, mentionedJids, message) {
         const botParticipant = participants.find(p => p.id === botJid || p.lid === botJid);
         if (!botParticipant || !['admin', 'superadmin'].includes(botParticipant.admin)) {
             await sock.sendMessage(chatId, {
-                text: '❌ WhatsApp refuse cette action : le bot doit être administrateur du groupe. Aucun bot ne peut contourner cette règle.'
+                text: '❌ WhatsApp refuses this action : the bot must be a group admin. No bot can bypass this rule.'
             }, { quoted: message });
             return;
         }
@@ -45,7 +45,7 @@ async function demoteCommand(sock, chatId, mentionedJids, message) {
             return participant && (participant.admin === 'admin' || participant.admin === 'superadmin');
         });
         if (!validTargets.length) {
-            await sock.sendMessage(chatId, { text: 'ℹ️ Les membres indiqués ne sont pas administrateurs.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: 'ℹ️ The mentioned members are not admins.' }, { quoted: message });
             return;
         }
 
@@ -75,7 +75,7 @@ async function demoteCommand(sock, chatId, mentionedJids, message) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             try {
                 await sock.sendMessage(chatId, {
-                    text: '❌ Rate limit reached. Veuillez réessayer in a few seconds.'
+                    text: '❌ Rate limit reached. Please try again in a few seconds.'
                 });
             } catch (retryError) {
                 console.error('Error sending retry message:', retryError);

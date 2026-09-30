@@ -89,7 +89,7 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
     
     if (!message.key.fromMe && !isOwner) {
-        return sendAntiMessage(sock, chatId, { text: '*Seul le propriétaire du bot peut utiliser cette commande.*' }, { quoted: message });
+        return sendAntiMessage(sock, chatId, { text: '*Only the bot owner can use this command.*' }, { quoted: message });
     }
 
     const config = loadAntideleteConfig();
@@ -105,18 +105,18 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     } else if (match === 'off') {
         config.activé = false;
     } else {
-        return sendAntiMessage(sock, chatId, { text: '*Commande invalide. Use .antidelete to see usage.*' }, {quoted:message});
+        return sendAntiMessage(sock, chatId, { text: '*Invalid command. Use .antidelete to see usage.*' }, {quoted:message});
     }
 
     saveAntideleteConfig(config);
-    return sendAntiMessage(sock, chatId, { text: `*Antidelete ${match === 'on' ? 'activé' : 'désactivé'}*` }, {quoted:message});
+    return sendAntiMessage(sock, chatId, { text: `*Antidelete ${match === 'on' ? 'enabled' : 'disabled'}*` }, {quoted:message});
 }
 
 // Store incoming messages (also handles anti-view-once by forwarding immediately)
 async function storeMessage(sock, message) {
     try {
         const config = loadAntideleteConfig();
-        if (!config.activé) return; // Don't store if antidelete is désactivé
+        if (!config.activé) return; // Don't store if antidelete is disabled
 
         if (!message.key?.id) return;
 

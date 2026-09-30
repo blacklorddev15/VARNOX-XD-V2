@@ -11,7 +11,7 @@ const warningCooldown = new Map();
 
 function readState() {
     try { if (!fs.existsSync(STATE_FILE)) return {}; return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')) || {}; }
-    catch (error) { console.error('[group-anti] lecture impossible:', error.message); return {}; }
+    catch (error) { console.error('[group-anti] unable to read:', error.message); return {}; }
 }
 function writeState(state) {
     fs.mkdirSync(path.dirname(STATE_FILE), {recursive:true});
@@ -29,8 +29,8 @@ async function send(sock, chatId, message, text, mentions = []) {
     await sock.sendMessage(chatId, Object.assign({text}, channelInfo, mentions.length ? {mentions} : {}), {quoted:message});
 }
 async function groupAntiCommand(sock, chatId, message, args = [], feature, senderIsAdmin) {
-    if (!chatId.endsWith('@g.us')) return send(sock, chatId, message, '❌ Cette commande fonctionne uniquement dans les groupes.');
-    if (!senderIsAdmin) return send(sock, chatId, message, '❌ Seuls les administrateurs peuvent configurer cette protection.');
+    if (!chatId.endsWith('@g.us')) return send(sock, chatId, message, '❌ This command only works in groups.');
+    if (!senderIsAdmin) return send(sock, chatId, message, '❌ Only admins can configure this protection.');
     const state = readState();
     if (!state[feature]) state[feature] = {};
     const current = getFeature(state, feature, chatId);
@@ -39,21 +39,21 @@ async function groupAntiCommand(sock, chatId, message, args = [], feature, sende
         current.enabled = action === 'on';
         if (feature === 'antiflood' && /^\d+$/.test(args[1] || '')) current.limit = Math.max(2, Math.min(30, Number(args[1])));
         state[feature][chatId] = current; writeState(state);
-        return send(sock, chatId, message, `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗡𝗧𝗜⟫──╮\n┃⌬┃ ${current.enabled ? '✅' : '❌'} ${feature} ${current.enabled ? 'activé' : 'désactivé'}.\n┃⌬┃ Configuration enregistrée pour ce groupe.\n╰━━━━━━━━━━━━❍`);
+        return send(sock, chatId, message, `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗔𝗡𝗧𝗜⟫──╮\n┃⌬┃ ${current.enabled ? '✅' : '❌'} ${feature} ${current.enabled ? 'enabled' : 'disabled'}.\n┃⌬┃ Configuration saved for this group.\n╰━━━━━━━━━━━━❍`);
     }
     if (action === 'limit' && feature === 'antiflood' && /^\d+$/.test(args[1] || '')) {
         current.limit = Math.max(2, Math.min(30, Number(args[1]))); state[feature][chatId] = current; writeState(state);
-        return send(sock, chatId, message, '✅ VARNOX antiflood : ' + current.limit + ' messages sur 10 secondes.');
+        return send(sock, chatId, message, '✅ VARNOX antiflood : ' + current.limit + ' messages over 10 seconds.');
     }
     const extra = feature === 'antiflood' ? '\n┃⌬┃ .antiflood limit 8' : '';
-    return send(sock, chatId, message, '╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 ' + feature.toUpperCase() + '⟫──╮\n┃⌬┃ Statut : ' + (current.enabled ? '✅ Activé' : '❌ Désactivé') + '\n┃⌬┃ .' + feature + ' on\n┃⌬┃ .' + feature + ' off\n┃⌬┃ .' + feature + ' status' + extra + '\n╰━━━━━━━━━━━━❍');
+    return send(sock, chatId, message, '╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 ' + feature.toUpperCase() + '⟫──╮\n┃⌬┃ Status: ' + (current.enabled ? '✅ Enabled' : '❌ Disabled') + '\n┃⌬┃ .' + feature + ' on\n┃⌬┃ .' + feature + ' off\n┃⌬┃ .' + feature + ' status' + extra + '\n╰━━━━━━━━━━━━❍');
 }
 async function warnAndDelete(sock, chatId, message, senderId, rule) {
-    try { await sock.sendMessage(chatId, {delete:message.key}); } catch (error) { console.error('[group-anti] suppression:', error.message); }
+    try { await sock.sendMessage(chatId, {delete:message.key}); } catch (error) { console.error('[group-anti] deletion:', error.message); }
     const key = chatId + ':' + senderId + ':' + rule; const now = Date.now();
     if ((warningCooldown.get(key) || 0) > now) return true;
     warningCooldown.set(key, now + 15000);
-    try { await send(sock, chatId, message, '🛡️ @' + senderId.split('@')[0] + ' : message bloqué par ' + rule + '.', [senderId]); } catch (error) {}
+    try { await send(sock, chatId, message, '🛡️ @' + senderId.split('@')[0] + ' : message blocked by ' + rule + '.', [senderId]); } catch (error) {}
     return true;
 }
 function mediaKind(message) {

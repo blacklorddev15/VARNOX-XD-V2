@@ -44,7 +44,7 @@ const convertStickerToImage = async (sock, quotedMessage, chatId) => {
         scheduleFileDeletion(outputImagePath);
     } catch (error) {
         console.error('Error converting sticker to image:', error);
-        await sock.sendMessage(chatId, { text: 'Une erreur est survenue lors de converting the sticker.' });
+        await sock.sendMessage(chatId, { text: 'An error occurred while converting the sticker.' });
     }
 };
 

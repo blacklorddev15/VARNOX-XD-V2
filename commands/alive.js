@@ -5,10 +5,10 @@ async function aliveCommand(sock, chatId, message) {
     const senderNumber = sender ? sender.split('@')[0] : 'User';
     try {
         const aliveMsg = `
-╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟
+╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟
 ┃⌬╭━━━━━━━━━━━━━━━≽
 ┃⌬┃ @${senderNumber}
-┃⌬┃✅️*sᴛᴀᴛᴜᴛ*  :  En ligne 🟢
+┃⌬┃✅️*sᴛᴀᴛᴜs*  :  Online 🟢
 ┃⌬┃♻️*ᴠᴇʀsɪᴏɴ* :  v${String(settings.version).padEnd(6)}
 ┃⌬┃🌍 *ᴍᴏᴅᴇ*   :  Public 
 ┃⌬┃👑 *ᴏᴡɴᴇʀ*  :  ʋαɾɳσx ❍
@@ -24,14 +24,14 @@ async function aliveCommand(sock, chatId, message) {
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363424782348922@newsletter',
-                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                     serverMessageId: -1
                 }
             }
         }, { quoted: message });
     } catch (error) {
         console.error('Error in alive command:', error);
-        await sock.sendMessage(chatId, { text: '🤖 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2 est en ligne !' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '🤖 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 is online!' }, { quoted: message });
     }
 }
 

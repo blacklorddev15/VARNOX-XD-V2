@@ -8,7 +8,7 @@ const channelInfo = {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363424782348922@newsletter',
-            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
             serverMessaged: -1
         }
     }
@@ -32,7 +32,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
         
         if (!msg.key.fromMe && !isOwner) {
             await sock.sendMessage(chatId, { 
-                text: '❌ Cette commande est réservée au propriétaire !',
+                text: '❌ This command is reserved for the owner!',
                 ...channelInfo
             });
             return;
@@ -43,8 +43,8 @@ async function autoStatusCommand(sock, chatId, msg, args) {
 
         // If no arguments, show current status
         if (!args || args.length === 0) {
-            const status = config.activé ? 'activé' : 'désactivé';
-            const reactStatus = config.reactOn ? 'activé' : 'désactivé';
+            const status = config.activé ? 'enabled' : 'disabled';
+            const reactStatus = config.reactOn ? 'enabled' : 'disabled';
             await sock.sendMessage(chatId, { 
                 text: `🔄 *Auto Status Settings*\n\n📱 *Auto Status View:* ${status}\n💫 *Status Reactions:* ${reactStatus}\n\n*Commands:*\n.autostatus on - Enable auto status view\n.autostatus off - Disable auto status view\n.autostatus react on - Enable status reactions\n.autostatus react off - Disable status reactions`,
                 ...channelInfo
@@ -59,14 +59,14 @@ async function autoStatusCommand(sock, chatId, msg, args) {
             config.activé = true;
             fs.writeFileSync(configPath, JSON.stringify(config));
             await sock.sendMessage(chatId, { 
-                text: '✅ Auto status view has been activé!\nBot will now automatically view all contact statuses.',
+                text: '✅ Auto status view has been enabled!\nBot will now automatically view all contact statuses.',
                 ...channelInfo
             });
         } else if (command === 'off') {
             config.activé = false;
             fs.writeFileSync(configPath, JSON.stringify(config));
             await sock.sendMessage(chatId, { 
-                text: '❌ Auto status view has been désactivé!\nBot will no longer automatically view statuses.',
+                text: '❌ Auto status view has been disabled!\nBot will no longer automatically view statuses.',
                 ...channelInfo
             });
         } else if (command === 'react') {
@@ -84,14 +84,14 @@ async function autoStatusCommand(sock, chatId, msg, args) {
                 config.reactOn = true;
                 fs.writeFileSync(configPath, JSON.stringify(config));
                 await sock.sendMessage(chatId, { 
-                    text: '💫 Status reactions have been activé!\nBot will now react to status updates.',
+                    text: '💫 Status reactions have been enabled!\nBot will now react to status updates.',
                     ...channelInfo
                 });
             } else if (reactCommand === 'off') {
                 config.reactOn = false;
                 fs.writeFileSync(configPath, JSON.stringify(config));
                 await sock.sendMessage(chatId, { 
-                    text: '❌ Status reactions have been désactivé!\nBot will no longer react to status updates.',
+                    text: '❌ Status reactions have been disabled!\nBot will no longer react to status updates.',
                     ...channelInfo
                 });
             } else {
@@ -102,7 +102,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
             }
         } else {
             await sock.sendMessage(chatId, { 
-                text: '❌ Commande invalide! Use:\n.autostatus on/off - Enable/disable auto status view\n.autostatus react on/off - Enable/disable status reactions',
+                text: '❌ Invalid command! Use:\n.autostatus on/off - Enable/disable auto status view\n.autostatus react on/off - Enable/disable status reactions',
                 ...channelInfo
             });
         }
@@ -116,7 +116,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
     }
 }
 
-// Function to check if auto status is activé
+// Function to check if auto status is enabled
 function isAutoStatusEnabled() {
     try {
         const config = JSON.parse(fs.readFileSync(configPath));
@@ -127,7 +127,7 @@ function isAutoStatusEnabled() {
     }
 }
 
-// Function to check if status reactions are activé
+// Function to check if status reactions are enabled
 function isStatusReactionEnabled() {
     try {
         const config = JSON.parse(fs.readFileSync(configPath));
@@ -189,7 +189,7 @@ async function handleStatusUpdate(sock, status) {
                     await sock.readMessages([msg.key]);
                     const sender = msg.key.participant || msg.key.remoteJid;
                     
-                    // React to status if activé
+                    // React to status if enabled
                     await reactToStatus(sock, msg.key);
                     
                     // Removed success log - only keep errors
@@ -212,7 +212,7 @@ async function handleStatusUpdate(sock, status) {
                 await sock.readMessages([status.key]);
                 const sender = status.key.participant || status.key.remoteJid;
                 
-                // React to status if activé
+                // React to status if enabled
                 await reactToStatus(sock, status.key);
                 
                 // Removed success log - only keep errors
@@ -234,7 +234,7 @@ async function handleStatusUpdate(sock, status) {
                 await sock.readMessages([status.reaction.key]);
                 const sender = status.reaction.key.participant || status.reaction.key.remoteJid;
                 
-                // React to status if activé
+                // React to status if enabled
                 await reactToStatus(sock, status.reaction.key);
                 
                 // Removed success log - only keep errors

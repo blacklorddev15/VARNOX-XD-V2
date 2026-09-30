@@ -184,29 +184,29 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     const senderId = message.key.participant || message.key.remoteJid;
     const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
     if (!message.key.fromMe && !isOwner) {
-        await sock.sendMessage(chatId, {text:'❌ Cette commande est réservée au propriétaire.'}, {quoted:message});
+        await sock.sendMessage(chatId, {text:'❌ This command is reserved for the owner.'}, {quoted:message});
         return;
     }
     if (updateInProgress) {
-        await sock.sendMessage(chatId, {text:'⏳ Une mise à jour est déjà en cours.'}, {quoted:message});
+        await sock.sendMessage(chatId, {text:'⏳ An update is already in progress.'}, {quoted:message});
         return;
     }
     updateInProgress = true;
     try {
-        await sock.sendMessage(chatId, {text:'🔄 Vérification des mises à jour…'}, {quoted:message});
+        await sock.sendMessage(chatId, {text:'🔄 Checking for updates…'}, {quoted:message});
         let summary = '';
         if (await hasGitRepo()) {
             const result = await updateViaGit();
             if (!result.alreadyUpToDate) await run('npm install --no-audit --no-fund');
-            summary = result.alreadyUpToDate ? '✅ VARNOX est déjà à jour.' : '✅ Mise à jour téléchargée : ' + result.newRev.slice(0, 12);
+            summary = result.alreadyUpToDate ? '✅ VARNOX is already up to date.' : '✅ Update downloaded: ' + result.newRev.slice(0, 12);
         } else {
             const result = await updateViaZip(sock, chatId, message, zipOverride);
-            summary = '✅ Mise à jour téléchargée : ' + result.copiedFiles.length + ' fichier(s).';
+            summary = '✅ Update downloaded: ' + result.copiedFiles.length + ' file(s).';
         }
-        await sock.sendMessage(chatId, {text:summary + '\n\n🔒 Aucun redémarrage automatique : la connexion WhatsApp reste intacte. Redémarre depuis ton hébergeur lorsque tu veux charger le nouveau code.'}, {quoted:message});
+        await sock.sendMessage(chatId, {text:summary + '\n\n🔒 No automatic restart: the WhatsApp connection stays intact. Restart from your host when you want to load the new code.'}, {quoted:message});
     } catch (error) {
         console.error('[update] failed:', error);
-        await sock.sendMessage(chatId, {text:'❌ Mise à jour échouée : ' + String(error.message || error)}, {quoted:message});
+        await sock.sendMessage(chatId, {text:'❌ Update failed: ' + String(error.message || error)}, {quoted:message});
     } finally {
         updateInProgress = false;
     }

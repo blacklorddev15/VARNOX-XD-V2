@@ -66,7 +66,7 @@ async function blurCommand(sock, chatId, message, quotedMessage) {
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363424782348922@newsletter',
-                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                    newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                     serverMessageId: -1
                 }
             }
@@ -75,7 +75,7 @@ async function blurCommand(sock, chatId, message, quotedMessage) {
     } catch (error) {
         console.error('Error in blur command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Failed to blur image. Réessayez plus tard.' 
+            text: '❌ Failed to blur image. Try again later!' 
         }, { quoted: message });
     }
 }

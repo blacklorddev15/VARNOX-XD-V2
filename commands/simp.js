@@ -47,7 +47,7 @@ async function simpCommand(sock, chatId, quotedMsg, mentionedJid, sender) {
     } catch (error) {
         console.error('Error in simp command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Sorry, I couldn\'t generate the simp card. Réessayez plus tard!',
+            text: '❌ Sorry, I couldn\'t generate the simp card. Please try again later!',
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: true,

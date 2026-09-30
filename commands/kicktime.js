@@ -6,32 +6,32 @@ const { channelInfo } = require('../lib/messageConfig');
 
 /**
  * .kicktime @user <minutes>
- * Expulse un utilisateur pendant X minutes puis le réintègre automatiquement.
- * Réservé aux utilisateurs premium (sudo/owner).
+ * Kicks a user for X minutes then automatically re-adds them.
+ * Reserved for premium users (sudo/owner).
  */
 async function kickTimeCommand(sock, chatId, senderId, message) {
-    // Groupe uniquement
+    // Group only
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
 
-    // Réservé aux premium / owner
+    // Reserved for premium / owner
     const isPremium = message.key.fromMe || await isOwnerOrSudo(senderId, sock, chatId);
     if (!isPremium) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗘𝗠𝗜𝗨𝗠⌟\n` +
-                `┃⌬┃ ⭐ Cette commande est réservée\n` +
-                `┃⌬┃    aux utilisateurs *premium*.\n` +
+                `┃⌬┃ ⭐ This command is reserved\n` +
+                `┃⌬┃    for *premium* users.\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
     }
 
-    // Extraire le JID cible et la durée
+    // Extract target JID and duration
     const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
     const parts = rawText.trim().split(/\s+/);
     const durationStr = parts[parts.length - 1];
@@ -44,8 +44,8 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗞𝗜𝗖𝗞𝗧𝗜𝗠𝗘⌟\n` +
-                `┃⌬┃ 📌 Usage : *.kicktime @user <minutes>*\n` +
-                `┃⌬┃ Ex : .kicktime @user 10\n` +
+                `┃⌬┃ 📌 Usage: *.kicktime @user <minutes>*\n` +
+                `┃⌬┃ Ex: .kicktime @user 10\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
@@ -53,7 +53,7 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
 
     if (isNaN(durationMin) || durationMin <= 0) {
         return sock.sendMessage(chatId, {
-            text: '⚠️ Donne une durée valide en minutes. Ex: `.kicktime @user 10`',
+            text: '⚠️ Provide a valid duration in minutes. Ex: `.kicktime @user 10`',
             ...channelInfo
         }, { quoted: message });
     }
@@ -62,7 +62,7 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
     const durationMs = durationMin * 60 * 1000;
 
     try {
-        // Récupérer le lien d'invitation du groupe AVANT d'expulser
+        // Fetch the group invite link BEFORE kicking
         let inviteLink = null;
         try {
             const code = await sock.groupInviteCode(chatId);
@@ -71,20 +71,20 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
             console.error('[kicktime] Could not get invite link:', e.message);
         }
 
-        // Expulser
+        // Kick
         await sock.groupParticipantsUpdate(chatId, [mentionedJid], 'remove');
 
-        // Notifier dans le groupe
+        // Notify in the group
         await sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗞𝗜𝗖𝗞𝗧𝗜𝗠𝗘⌟\n` +
-                `┃⌬┃ 🚫 *Expulsion temporaire*\n` +
+                `┃⌬┃ 🚫 *Temporary kick*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ 👤 @${targetNum}\n` +
-                `┃⌬┃ ⏱️ Durée : *${durationMin} minute(s)*\n` +
+                `┃⌬┃ ⏱️ Duration: *${durationMin} minute(s)*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ✅ Utilisateur expulsé.\n` +
-                `┃⌬┃ ⏳ Réintégration automatique dans\n` +
+                `┃⌬┃ ✅ User kicked.\n` +
+                `┃⌬┃ ⏳ Automatic re-add in\n` +
                 `┃⌬┃    *${durationMin} min*.\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
@@ -92,16 +92,16 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
             ...channelInfo
         }, { quoted: message });
 
-        // Message privé à l'utilisateur expulsé
+        // Private message to the kicked user
         if (inviteLink) {
             try {
                 await sock.sendMessage(mentionedJid, {
                     text:
                         `╭━━━━⌜𝗞𝗜𝗖𝗞𝗧𝗜𝗠𝗘⌟\n` +
-                        `┃⌬┃ 🚫 Tu as été expulsé(e) temporairement.\n` +
-                        `┃⌬┃ ⏳ Attends *${durationMin} min*, tu seras réintégré(e).\n` +
+                        `┃⌬┃ 🚫 You have been temporarily kicked.\n` +
+                        `┃⌬┃ ⏳ Wait *${durationMin} min*, you will be re-added.\n` +
                         `┃⌬┃\n` +
-                        `┃⌬┃ 🔗 Lien de réintégration :\n` +
+                        `┃⌬┃ 🔗 Rejoin link:\n` +
                         `┃⌬┃ ${inviteLink}\n` +
                         `╰━━━━━━━━━━━━━━━━❍`,
                     ...channelInfo
@@ -109,30 +109,30 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
             } catch {}
         }
 
-        // Réintégrer automatiquement après la durée
+        // Automatically re-add after the duration
         setTimeout(async () => {
             try {
                 await sock.groupParticipantsUpdate(chatId, [mentionedJid], 'add');
                 await sock.sendMessage(chatId, {
                     text:
                         `╭━━━━⌜𝗞𝗜𝗖𝗞𝗧𝗜𝗠𝗘⌟\n` +
-                        `┃⌬┃ ✅ *Réintégration automatique*\n` +
+                        `┃⌬┃ ✅ *Automatic re-add*\n` +
                         `┃⌬┃\n` +
                         `┃⌬┃ 👤 @${targetNum}\n` +
-                        `┃⌬┃ a été réintégré(e) dans le groupe.\n` +
+                        `┃⌬┃ has been re-added to the group.\n` +
                         `╰━━━━━━━━━━━━━━━━❍`,
                     mentions: [mentionedJid],
                     ...channelInfo
                 });
             } catch (e) {
                 console.error('[kicktime] auto-readd error:', e.message);
-                // Si on ne peut pas re-ajouter, envoyer le lien d'invitation
+                // If re-adding fails, send the invite link
                 if (inviteLink) {
                     try {
                         await sock.sendMessage(mentionedJid, {
                             text:
-                                `✅ Ta période d'expulsion est terminée.\n` +
-                                `Rejoins le groupe ici :\n${inviteLink}`,
+                                `✅ Your kick period is over.\n` +
+                                `Rejoin the group here:\n${inviteLink}`,
                             ...channelInfo
                         });
                     } catch {}
@@ -143,7 +143,7 @@ async function kickTimeCommand(sock, chatId, senderId, message) {
     } catch (err) {
         console.error('[kicktime] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible d\'expulser cet utilisateur.',
+            text: '❌ Failed to kick this user.',
             ...channelInfo
         }, { quoted: message });
     }

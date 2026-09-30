@@ -6,7 +6,7 @@ const channelInfo = {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid:  '120363424782348922@newsletter',
-            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
             serverMessageId: -1
         }
     }
@@ -15,7 +15,7 @@ const channelInfo = {
 async function tagAllCommand(sock, chatId, senderId, message) {
     try {
         if (!chatId.endsWith('@g.us')) {
-            await sock.sendMessage(chatId, { text: '❌ Cette commande ne fonctionne que dans les groupes.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '❌ This command only works in groups.' }, { quoted: message });
             return;
         }
 
@@ -23,11 +23,11 @@ async function tagAllCommand(sock, chatId, senderId, message) {
         const participants  = groupMetadata.participants;
 
         if (!participants || participants.length === 0) {
-            await sock.sendMessage(chatId, { text: '❌ Aucun participant trouvé.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '❌ No participants found.' }, { quoted: message });
             return;
         }
 
-        const groupName = groupMetadata.subject || 'Groupe';
+        const groupName = groupMetadata.subject || 'Group';
         const count     = participants.length;
         const senderNum = senderId.split('@')[0];
         const mentions  = participants.map(p => p.id);
@@ -37,19 +37,19 @@ async function tagAllCommand(sock, chatId, senderId, message) {
             .join('\n');
 
         const tagMessage =
-            `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+            `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
             `┃⌬╭━━━━━━━━━━━━━≽\n` +
             `┃⌬┃ @${senderNum}\n` +
             `╰━━━━━━━━━━━━❍\n` +
-            `    📢 𝗔𝗡𝗡𝗢𝗡𝗖𝗘 ❍𝗙𝗙𝗜𝗖𝗜𝗔𝗟\n` +
+            `    📢 𝗔𝗡𝗡𝗢𝗨𝗡𝗖𝗘𝗠𝗘𝗡𝗧 ❍𝗙𝗙𝗜𝗖𝗜𝗔𝗟\n` +
             `┃⌬┃ 🏷️ *${groupName}*\n` +
-            `┃⌬┃ 👥 *Membres tagués : ${count}*\n` +
+            `┃⌬┃ 👥 *Tagged members: ${count}*\n` +
             `\n` +
             `${memberList}\n` +
             `\n` +
             `┃⌬┃\n` +
-            `┃⌬┃ 🔔 ᴀᴛᴛᴇɴᴛɪᴏɴ ᴛᴏᴜᴛ\n` +
-            `┃⌬┃  ʟᴇ ᴍᴏɴᴅᴇ !\n` +
+            `┃⌬┃ 🔔 ᴀᴛᴛᴇɴᴛɪᴏɴ ᴛᴏ\n` +
+            `┃⌬┃  ᴇᴠᴇʀʏᴏɴᴇ !\n` +
             `╰━━━━━━━━━━━━❍\n` +
             `\n` +
             `> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`;
@@ -62,7 +62,7 @@ async function tagAllCommand(sock, chatId, senderId, message) {
 
     } catch (err) {
         console.error('[tagall] error:', err.message);
-        await sock.sendMessage(chatId, { text: '❌ Impossible de tagger tous les membres.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Unable to tag all members.' }, { quoted: message });
     }
 }
 

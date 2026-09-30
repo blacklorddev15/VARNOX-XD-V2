@@ -13,7 +13,7 @@ function loadState() {
         }
         return state;
 	} catch {
-        // Default: désactivé; when activé without custom asset, reply as plain text
+        // Default: disabled; when enabled without custom asset, reply as plain text
         return { activé: false, assetPath: '', type: 'text' };
 	}
 }
@@ -159,7 +159,7 @@ async function mentionToggleCommand(sock, chatId, message, args, isOwner) {
 	const state = loadState();
 	state.activé = onoff === 'on';
 	saveState(state);
-	return sock.sendMessage(chatId, { text: `Mention reply ${state.activé ? 'activé' : 'désactivé'}.` }, { quoted: message });
+	return sock.sendMessage(chatId, { text: `Mention reply ${state.activé ? 'enabled' : 'disabled'}.` }, { quoted: message });
 }
 
 async function setMentionCommand(sock, chatId, message, isOwner) {

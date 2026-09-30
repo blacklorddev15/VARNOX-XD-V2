@@ -117,12 +117,12 @@ async function instagramCommand(sock, chatId, message) {
                     await sock.sendMessage(chatId, {
                         video: { url: mediaUrl },
                         mimetype: "video/mp4",
-                        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2"
+                        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔"
                     }, { quoted: message });
                 } else {
                     await sock.sendMessage(chatId, {
                         image: { url: mediaUrl },
-                        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2"
+                        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔"
                     }, { quoted: message });
                 }
                 
@@ -140,7 +140,7 @@ async function instagramCommand(sock, chatId, message) {
     } catch (error) {
         console.error('Error in Instagram command:', error);
         await sock.sendMessage(chatId, { 
-            text: "❌ Une erreur est survenue lors de processing the Instagram request. Veuillez réessayer."
+            text: "❌ An error occurred while processing the Instagram request. Please try again."
         });
     }
 }

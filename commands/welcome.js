@@ -10,7 +10,7 @@ function commandArgs(text, command) {
 
 async function welcomeCommand(sock, chatId, message) {
     if (!chatId.endsWith('@g.us')) {
-        await sock.sendMessage(chatId, { text: 'Cette commande ne fonctionne que dans les groupes.' });
+        await sock.sendMessage(chatId, { text: 'This command only works in groups.' });
         return;
     }
     const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
@@ -27,26 +27,26 @@ async function handleJoinEvent(sock, id, participants) {
         return;
     }
 
-    const groupName = groupMetadata.subject || 'Groupe';
+    const groupName = groupMetadata.subject || 'Group';
 
     for (const participant of participants || []) {
         try {
             const jid = participantJid(participant);
             const senderNum = jid.split('@')[0];
-            const welcomeMsg = `👋 Bienvenue @${senderNum} dans *${groupName}* !`;
+            const welcomeMsg = `👋 Welcome @${senderNum} to *${groupName}*!`;
 
             await sendMemberEvent(sock, id, jid, welcomeMsg);
         } catch (err) {
-            console.error('[welcome] Erreur :', err.message);
+            console.error('[welcome] Error:', err.message);
             try {
                 const jid = participantJid(participant);
                 const num = jid.split('@')[0];
                 await sock.sendMessage(id, {
-                    text: '🎉 Bienvenue @' + num + ' dans *' + (groupMetadata.subject || 'ce groupe') + '* ! 👋',
+                    text: '🎉 Welcome @' + num + ' to *' + (groupMetadata.subject || 'this group') + '*! 👋',
                     mentions: [jid],
                     ...channelInfo()
                 });
-            } catch { /* rien */ }
+            } catch { /* nothing */ }
         }
     }
 }

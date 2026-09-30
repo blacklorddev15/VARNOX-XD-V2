@@ -11,7 +11,7 @@ function readMutedUsers() {
         const data = JSON.parse(fs.readFileSync(MUTED_FILE, 'utf8'));
         return data && typeof data === 'object' ? data : {};
     } catch (error) {
-        console.error('[mute] impossible de lire muted.json:', error.message);
+        console.error('[mute] unable to read muted.json:', error.message);
         return {};
     }
 }
@@ -86,34 +86,34 @@ async function muteCommand(sock, chatId, senderId, message, durationInMinutes, m
         if (targets.length > 0) {
             setMuted(chatId, targets, durationInMinutes);
             const names = targets.map(jid => '@' + jid.split('@')[0]).join(', ');
-            const duration = durationInMinutes > 0 ? ' pendant ' + durationInMinutes + ' minute(s)' : '';
-            const verb = targets.length > 1 ? 'sont' : 'est';
-            const subject = targets.length > 1 ? 'ces utilisateurs' : 'cet utilisateur';
+            const duration = durationInMinutes > 0 ? ' for ' + durationInMinutes + ' minute(s)' : '';
+            const verb = targets.length > 1 ? 'are' : 'is';
+            const subject = targets.length > 1 ? 'these users' : 'this user';
             await sock.sendMessage(chatId, {
-                text: '🔇 ' + names + ' ' + verb + ' maintenant muet(s)' + duration + '.\n\nLes messages de ' + subject + ' seront supprimés jusqu\'à .unmute.',
+                text: '🔇 ' + names + ' ' + verb + ' now muted' + duration + '.\n\nMessages from ' + subject + ' will be deleted until .unmute.',
                 mentions: targets
             }, {quoted: message});
             return;
         }
 
-        // Compatibilité conservée : sans cible, .mute ferme le groupe entier.
+        // Backward compatible: without a target, .mute closes the whole group.
         await sock.groupSettingUpdate(chatId, 'announcement');
         if (durationInMinutes > 0) {
-            await sock.sendMessage(chatId, {text: '🔇 Le groupe est fermé pour ' + durationInMinutes + ' minute(s).'}, {quoted: message});
+            await sock.sendMessage(chatId, {text: '🔇 The group is closed for ' + durationInMinutes + ' minute(s).'}, {quoted: message});
             setTimeout(async () => {
                 try {
                     await sock.groupSettingUpdate(chatId, 'not_announcement');
-                    await sock.sendMessage(chatId, {text: '🔊 Le groupe est de nouveau ouvert.'});
+                    await sock.sendMessage(chatId, {text: '🔊 The group is open again.'});
                 } catch (error) {
-                    console.error('[mute] erreur lors de la réouverture:', error.message);
+                    console.error('[mute] error while reopening:', error.message);
                 }
             }, durationInMinutes * 60 * 1000);
         } else {
-            await sock.sendMessage(chatId, {text: '🔇 Le groupe est maintenant muet. Utilise .unmute pour le rouvrir.'}, {quoted: message});
+            await sock.sendMessage(chatId, {text: '🔇 The group is now muted. Use .unmute to reopen it.'}, {quoted: message});
         }
     } catch (error) {
-        console.error('[mute] erreur:', error);
-        await sock.sendMessage(chatId, {text: '❌ Impossible d\'appliquer le mute. Vérifie que le bot est administrateur.'}, {quoted: message});
+        console.error('[mute] error:', error);
+        await sock.sendMessage(chatId, {text: '❌ Failed to apply the mute. Check that the bot is an administrator.'}, {quoted: message});
     }
 }
 

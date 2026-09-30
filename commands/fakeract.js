@@ -24,7 +24,7 @@ async function followChannel(sock, newsletterJid) {
     try {
         if (typeof sock.subscribeNewsletterUpdates === 'function') await sock.subscribeNewsletterUpdates(newsletterJid);
         else if (typeof sock.newsletterFollow === 'function') await sock.newsletterFollow(newsletterJid);
-    } catch (error) { console.warn('[fakeract] abonnement impossible :', error.message); }
+    } catch (error) { console.warn('[fakeract] subscription failed:', error.message); }
 }
 
 function parseChannelLink(value) {
@@ -68,7 +68,7 @@ async function fakeReactCommand(sock, chatId, message, rawArgs = '') {
     if (command === 'off') {
         state.global = { enabled: false, disabledAll: true };
         writeState(state);
-        await send(sock, chatId, message, '✅ Fakeract et les réactions automatiques sont désactivés.');
+        await send(sock, chatId, message, '✅ Fakeract and automatic reactions are disabled.');
         return;
     }
 
@@ -83,8 +83,8 @@ async function fakeReactCommand(sock, chatId, message, rawArgs = '') {
             chatId,
             message,
             current?.enabled
-                ? `📡 Fakeract actif sur ${current.channelJid}.\n🎯 Jusqu’à ${current.reactionTarget} comptes connectés par publication.`
-                : 'ℹ️ Fakeract temps réel est désactivé.'
+                ? `📡 Fakeract active on ${current.channelJid}.\n🎯 Up to ${current.reactionTarget} connected accounts per post.`
+                : 'ℹ️ Real-time Fakeract is disabled.'
         );
         return;
     }
@@ -96,7 +96,7 @@ async function fakeReactCommand(sock, chatId, message, rawArgs = '') {
     const reactionTarget = requested === 50 ? 50 : DEFAULT_TARGET;
     if (!target) {
         await sock.sendMessage(chatId, {
-            text: '❌ Utilise .fakeract avec un lien de publication de chaîne WhatsApp.\nExemple : .fakeract https://whatsapp.com/channel/XXXX/123\n\nAjoute .fakeract off pour arrêter le suivi.',
+            text: '❌ Use .fakeract with a WhatsApp channel post link.\nExample: .fakeract https://whatsapp.com/channel/XXXX/123\n\nAdd .fakeract off to stop tracking.',
             ...channelInfo
         }, { quoted: message });
         return;
@@ -104,14 +104,14 @@ async function fakeReactCommand(sock, chatId, message, rawArgs = '') {
 
     if (typeof sock.newsletterMetadata !== 'function' ||
         typeof sock.newsletterReactMessage !== 'function') {
-        await send(sock, chatId, message, '❌ Cette version de Baileys ne prend pas en charge les réactions de chaîne.');
+        await send(sock, chatId, message, '❌ This Baileys version does not support channel reactions.');
         return;
     }
 
     try {
         const metadata = await sock.newsletterMetadata('invite', target.inviteCode);
         const newsletterJid = metadata?.id || metadata?.jid;
-        if (!newsletterJid) throw new Error('Chaîne introuvable');
+        if (!newsletterJid) throw new Error('Channel not found');
 
         const bots = connectedBots(sock);
         await Promise.all(bots.map(bot => followChannel(bot.sock, newsletterJid)));
@@ -130,11 +130,11 @@ async function fakeReactCommand(sock, chatId, message, rawArgs = '') {
             sock,
             chatId,
             message,
-            `✅ Fakeract activé sur ${newsletterJid}.\n📡 Chaque nouvelle publication sera traitée une seule fois.\n🎯 Jusqu’à ${reactionTarget} comptes connectés réagiront par publication.`
+            `✅ Fakeract enabled on ${newsletterJid}.\n📡 Each new post will be processed only once.\n🎯 Up to ${reactionTarget} connected accounts will react per post.`
         );
     } catch (error) {
-        console.error('[fakeract] réaction impossible :', error.message);
-        await send(sock, chatId, message, `❌ Impossible de configurer cette chaîne : ${error.message}`);
+        console.error('[fakeract] reaction failed:', error.message);
+        await send(sock, chatId, message, `❌ Unable to configure this channel: ${error.message}`);
     }
 }
 
@@ -162,7 +162,7 @@ async function handleChannelPost(sock, message) {
         ''
     );
     if (!/^\d+$/.test(serverMessageId)) {
-        console.warn('[fakeract] publication reçue sans serverMessageId exploitable');
+        console.warn('[fakeract] post received without a usable serverMessageId');
         return false;
     }
 
@@ -185,7 +185,7 @@ async function handleChannelPost(sock, message) {
                 post.accounts.push(bot.number);
                 config.nextEmoji = (Number(config.nextEmoji || 0) + 1) % REACTIONS.length;
             } catch (error) {
-                console.error('[fakeract] réaction impossible pour ' + bot.number + ' :', error.message);
+                console.error('[fakeract] reaction failed for ' + bot.number + ':', error.message);
             }
         }
         config.reactedPosts[serverMessageId] = post;

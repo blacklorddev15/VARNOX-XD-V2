@@ -6,33 +6,33 @@ const { channelInfo } = require('../lib/messageConfig');
 
 /**
  * .promotetime @user <minutes>
- * Promeut un utilisateur en admin pendant X minutes puis le rétrograde automatiquement.
- * Réservé aux utilisateurs premium (sudo/owner).
+ * Promotes a user to admin for X minutes then automatically demotes them.
+ * Reserved for premium users (sudo/owner).
  */
 async function promoteTimeCommand(sock, chatId, senderId, message) {
-    // Groupe uniquement
+    // Group only
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
 
-    // Réservé aux premium / owner
+    // Reserved for premium / owner
     const isPremium = message.key.fromMe || await isOwnerOrSudo(senderId, sock, chatId);
     if (!isPremium) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗘𝗠𝗜𝗨𝗠⌟\n` +
-                `┃⌬┃ ⭐ Cette commande est réservée\n` +
-                `┃⌬┃    aux utilisateurs *premium*.\n` +
-                `┃⌬┃ Contactez le propriétaire du bot.\n` +
+                `┃⌬┃ ⭐ This command is reserved\n` +
+                `┃⌬┃    for *premium* users.\n` +
+                `┃⌬┃ Contact the bot owner.\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
     }
 
-    // Extraire le JID cible et la durée
+    // Extract target JID and duration
     const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
     const parts = rawText.trim().split(/\s+/);
     const durationStr = parts[parts.length - 1];
@@ -45,8 +45,8 @@ async function promoteTimeCommand(sock, chatId, senderId, message) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗣𝗥𝗢𝗠𝗢𝗧𝗘𝗧𝗜𝗠𝗘⌟\n` +
-                `┃⌬┃ 📌 Usage : *.promotetime @user <minutes>*\n` +
-                `┃⌬┃ Ex : .promotetime @user 30\n` +
+                `┃⌬┃ 📌 Usage: *.promotetime @user <minutes>*\n` +
+                `┃⌬┃ Ex: .promotetime @user 30\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
@@ -54,7 +54,7 @@ async function promoteTimeCommand(sock, chatId, senderId, message) {
 
     if (isNaN(durationMin) || durationMin <= 0) {
         return sock.sendMessage(chatId, {
-            text: '⚠️ Donne une durée valide en minutes. Ex: `.promotetime @user 30`',
+            text: '⚠️ Provide a valid duration in minutes. Ex: `.promotetime @user 30`',
             ...channelInfo
         }, { quoted: message });
     }
@@ -63,19 +63,19 @@ async function promoteTimeCommand(sock, chatId, senderId, message) {
     const durationMs = durationMin * 60 * 1000;
 
     try {
-        // Promouvoir
+        // Promote
         await sock.groupParticipantsUpdate(chatId, [mentionedJid], 'promote');
 
         await sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗣𝗥𝗢𝗠𝗢𝗧𝗘𝗧𝗜𝗠𝗘⌟\n` +
-                `┃⌬┃ 👑 *Promotion temporaire*\n` +
+                `┃⌬┃ 👑 *Temporary promotion*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ 👤 @${targetNum}\n` +
-                `┃⌬┃ ⏱️ Durée : *${durationMin} minute(s)*\n` +
+                `┃⌬┃ ⏱️ Duration: *${durationMin} minute(s)*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ✅ Utilisateur promu en admin.\n` +
-                `┃⌬┃ ⏳ Rétrogradation automatique dans\n` +
+                `┃⌬┃ ✅ User promoted to admin.\n` +
+                `┃⌬┃ ⏳ Automatic demotion in\n` +
                 `┃⌬┃    *${durationMin} min*.\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
@@ -83,18 +83,18 @@ async function promoteTimeCommand(sock, chatId, senderId, message) {
             ...channelInfo
         }, { quoted: message });
 
-        // Rétrograder automatiquement après la durée
+        // Automatically demote after the duration
         setTimeout(async () => {
             try {
                 await sock.groupParticipantsUpdate(chatId, [mentionedJid], 'demote');
                 await sock.sendMessage(chatId, {
                     text:
                         `╭━━━━⌜𝗣𝗥𝗢𝗠𝗢𝗧𝗘𝗧𝗜𝗠𝗘⌟\n` +
-                        `┃⌬┃ ⏰ *Promotion expirée*\n` +
+                        `┃⌬┃ ⏰ *Promotion expired*\n` +
                         `┃⌬┃\n` +
                         `┃⌬┃ 👤 @${targetNum}\n` +
-                        `┃⌬┃ La promotion de ${durationMin} min est terminée.\n` +
-                        `┃⌬┃ L'utilisateur a été rétrogradé. ✅\n` +
+                        `┃⌬┃ The ${durationMin} min promotion is over.\n` +
+                        `┃⌬┃ The user has been demoted. ✅\n` +
                         `╰━━━━━━━━━━━━━━━━❍`,
                     mentions: [mentionedJid],
                     ...channelInfo
@@ -107,7 +107,7 @@ async function promoteTimeCommand(sock, chatId, senderId, message) {
     } catch (err) {
         console.error('[promotetime] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible de promouvoir cet utilisateur.',
+            text: '❌ Failed to promote this user.',
             ...channelInfo
         }, { quoted: message });
     }

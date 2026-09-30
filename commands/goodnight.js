@@ -12,13 +12,13 @@ async function goodnightCommand(sock, chatId, message) {
         }
         
         const json = res ? await res.json() : null;
-        const goodnightMessage = json?.result || '🌙 Bonne nuit. Repose-toi bien et prends soin de toi.';
+        const goodnightMessage = json?.result || '🌙 Good night. Rest well and take care of yourself.';
 
         // Send the goodnight message
         await sock.sendMessage(chatId, { text: goodnightMessage }, { quoted: message });
     } catch (error) {
         console.error('Error in goodnight command:', error);
-        await sock.sendMessage(chatId, { text: '❌ Failed to get goodnight message. Réessayez plus tard!' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Failed to get goodnight message. Try again later!' }, { quoted: message });
     }
 }
 

@@ -84,13 +84,13 @@ module.exports = {
             let errorMessage = '❌ Failed to remove background.';
             
             if (error.response?.status === 429) {
-                errorMessage = '⏰ Rate limit exceeded. Réessayez plus tard.';
+                errorMessage = '⏰ Rate limit exceeded. Try again later.';
             } else if (error.response?.status === 400) {
                 errorMessage = '❌ Invalid image URL or format.';
             } else if (error.response?.status === 500) {
-                errorMessage = '🔧 Server error. Réessayez plus tard.';
+                errorMessage = '🔧 Server error. Try again later.';
             } else if (error.code === 'ECONNABORTED') {
-                errorMessage = '⏰ Request timeout. Veuillez réessayer.';
+                errorMessage = '⏰ Request timeout. Please try again.';
             } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
                 errorMessage = '🌐 Network error. Please check your connection.';
             }

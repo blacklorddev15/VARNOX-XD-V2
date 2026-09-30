@@ -87,7 +87,7 @@ async function urlCommand(sock, chatId, message) {
 
         if (!media) {
             await sock.sendMessage(chatId, {
-                text: '📎 Envoie ou réponds à une image, vidéo, audio, sticker ou document pour générer son lien.'
+                text: '📎 Send or reply to an image, video, audio, sticker or document to generate its link.'
             }, { quoted: message });
             return;
         }
@@ -120,8 +120,8 @@ async function urlCommand(sock, chatId, message) {
         }
 
         url = String(url || '').trim();
-        if (!url) throw new Error('Le service d’upload n’a renvoyé aucun lien.');
-        try { new URL(url); } catch { throw new Error('Le lien généré est invalide.'); }
+        if (!url) throw new Error('The upload service returned no link.');
+        try { new URL(url); } catch { throw new Error('The generated link is invalid.'); }
 
         const caption = [
             'Media Uploaded Successfully',
@@ -154,7 +154,7 @@ async function urlCommand(sock, chatId, message) {
         }
         console.error('[URL] error:', error?.message || error);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible de générer le lien du média : ' + (error?.message || 'erreur inconnue')
+            text: '❌ Unable to generate the media link: ' + (error?.message || 'unknown error')
         }, { quoted: message });
     }
 }

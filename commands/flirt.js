@@ -12,13 +12,13 @@ async function flirtCommand(sock, chatId, message) {
         }
         
         const json = res ? await res.json() : null;
-        const flirtMessage = json?.result || '✨ Ton sourire pourrait améliorer la journée de n’importe qui.';
+        const flirtMessage = json?.result || '✨ Your smile could brighten anyone’s day.';
 
         // Send the flirt message
         await sock.sendMessage(chatId, { text: flirtMessage }, { quoted: message });
     } catch (error) {
         console.error('Error in flirt command:', error);
-        await sock.sendMessage(chatId, { text: '❌ Failed to get flirt message. Réessayez plus tard!' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Failed to get flirt message. Try again later!' }, { quoted: message });
     }
 }
 

@@ -62,7 +62,7 @@ async function metadata(sock, chatId) {
 async function requireAdmin(sock, chatId, message, owner) {
     const status = await isAdmin(sock, chatId, message.key.participant || message.key.remoteJid);
     if (!owner && !status.isSenderAdmin) {
-        await sock.sendMessage(chatId, { text: '❌ Cette commande est réservée aux admins.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ This command is reserved for admins.' }, { quoted: message });
         return null;
     }
     return status;
@@ -73,7 +73,7 @@ async function requireBotAdmin(sock, chatId, message, owner) {
     if (!status) return null;
     if (!owner && !status.isBotAdmin) {
         await sock.sendMessage(chatId, {
-            text: '⚠️ WhatsApp a refusé cette action : elle est réservée aux administrateurs du groupe.'
+            text: '⚠️ WhatsApp refused this action: it is reserved for group admins.'
         }, { quoted: message });
         return null;
     }
@@ -89,7 +89,7 @@ function groupState(chatId) {
 async function handleGroupExtraCommand(sock, chatId, message, command, args, owner = false) {
     if (!GROUP_COMMANDS.includes(command)) return false;
     if (!chatId.endsWith('@g.us')) {
-        await sock.sendMessage(chatId, { text: '❌ Cette commande fonctionne uniquement dans un groupe.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ This command only works in a group.' }, { quoted: message });
         return true;
     }
 
@@ -105,60 +105,60 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             await sock.sendMessage(chatId, { text: `✅ Group JID: ${chatId}` }, { quoted: message });
             break;
         case 'members':
-            await sock.sendMessage(chatId, { text: `👥 Membres: ${participants.length}` }, { quoted: message });
+            await sock.sendMessage(chatId, { text: `👥 Members: ${participants.length}` }, { quoted: message });
             break;
         case 'admins':
             await sock.sendMessage(chatId, {
-                text: `👑 Administrateurs (${admins.length})\n${admins.map(p => `• @${participantNumber(p)}`).join('\n')}`,
+                text: `👑 Admins (${admins.length})\n${admins.map(p => `• @${participantNumber(p)}`).join('\n')}`,
                 mentions: mentionJids(admins)
             }, { quoted: message });
             break;
         case 'nonadmins':
             await sock.sendMessage(chatId, {
-                text: `👥 Membres non-admins (${nonAdmins.length})\n${nonAdmins.slice(0, 80).map(p => `• @${participantNumber(p)}`).join('\n')}`,
+                text: `👥 Non-admin members (${nonAdmins.length})\n${nonAdmins.slice(0, 80).map(p => `• @${participantNumber(p)}`).join('\n')}`,
                 mentions: mentionJids(nonAdmins.slice(0, 80))
             }, { quoted: message });
             break;
         case 'mentionall':
-            await sock.sendMessage(chatId, { text: commandArgs || '📢 Attention tout le monde !', mentions }, { quoted: message });
+            await sock.sendMessage(chatId, {                 text: commandArgs || '📢 Attention everyone!', mentions }, { quoted: message });
             break;
         case 'mentionadmins':
             await sock.sendMessage(chatId, {
-                text: commandArgs || '📢 Message pour les administrateurs.',
+                text: commandArgs || '📢 Message for admins.',
                 mentions: mentionJids(admins)
             }, { quoted: message });
             break;
         case 'mentionnonadmins':
             await sock.sendMessage(chatId, {
-                text: commandArgs || '📢 Message pour les membres.',
+                text: commandArgs || '📢 Message for members.',
                 mentions: mentionJids(nonAdmins)
             }, { quoted: message });
             break;
         case 'groupstats':
             await sock.sendMessage(chatId, {
-                text: `📊 Statistiques\n• Membres : ${participants.length}\n• Admins : ${admins.length}\n• Création : ${meta.creation ? new Date(meta.creation * 1000).toLocaleString('fr-FR') : 'inconnue'}`
+                text: `📊 Statistics\n• Members: ${participants.length}\n• Admins: ${admins.length}\n• Created: ${meta.creation ? new Date(meta.creation * 1000).toLocaleString('fr-FR') : 'unknown'}`
             }, { quoted: message });
             break;
         case 'groupcreated':
             await sock.sendMessage(chatId, {
-                text: `📅 Groupe créé le ${meta.creation ? new Date(meta.creation * 1000).toLocaleString('fr-FR') : 'date indisponible'}.`
+                text: `📅 Group created on ${meta.creation ? new Date(meta.creation * 1000).toLocaleString('fr-FR') : 'date unavailable'}.`
             }, { quoted: message });
             break;
         case 'rules': {
             const state = readState();
-            await sock.sendMessage(chatId, { text: state[chatId]?.rules || 'ℹ️ Aucune règle configurée. Utilise .setrules texte.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: state[chatId]?.rules || 'ℹ️ No rules configured. Use .setrules text.' }, { quoted: message });
             break;
         }
         case 'setrules': {
             if (!await requireAdmin(sock, chatId, message, owner)) break;
             if (!commandArgs) {
-                await sock.sendMessage(chatId, { text: '❌ Utilise .setrules texte.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ Use .setrules text.' }, { quoted: message });
                 break;
             }
             const state = groupState(chatId);
             state[chatId].rules = commandArgs.slice(0, 3000);
             writeState(state);
-            await sock.sendMessage(chatId, { text: '✅ Règles du groupe mises à jour.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '✅ Group rules updated.' }, { quoted: message });
             break;
         }
         case 'clearrules': {
@@ -166,12 +166,12 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             const state = groupState(chatId);
             delete state[chatId].rules;
             writeState(state);
-            await sock.sendMessage(chatId, { text: '✅ Règles supprimées.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '✅ Rules deleted.' }, { quoted: message });
             break;
         }
         case 'announce':
             if (!await requireAdmin(sock, chatId, message, owner)) break;
-            await sock.sendMessage(chatId, { text: commandArgs || '📢 Annonce du groupe.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: commandArgs || '📢 Group announcement.' }, { quoted: message });
             break;
         case 'grouplink':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
@@ -180,48 +180,48 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
         case 'revokeinvite':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
             await sock.groupRevokeInvite(chatId);
-            await sock.sendMessage(chatId, { text: '✅ Lien du groupe révoqué.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '✅ Group link revoked.' }, { quoted: message });
             break;
         case 'lockchat':
         case 'closechat':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
             await sock.groupSettingUpdate(chatId, 'announcement');
-            await sock.sendMessage(chatId, { text: '🔒 Groupe fermé aux membres.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '🔒 Group closed to members.' }, { quoted: message });
             break;
         case 'unlockchat':
         case 'openchat':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
             await sock.groupSettingUpdate(chatId, 'not_announcement');
-            await sock.sendMessage(chatId, { text: '🔓 Groupe ouvert aux membres.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '🔓 Group open to members.' }, { quoted: message });
             break;
         case 'restrictchat':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
             await sock.groupSettingUpdate(chatId, 'locked');
-            await sock.sendMessage(chatId, { text: '🔐 Seuls les admins peuvent modifier les infos du groupe.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '🔐 Only admins can change group info.' }, { quoted: message });
             break;
         case 'unrestrictchat':
             if (!await requireBotAdmin(sock, chatId, message, owner)) break;
             await sock.groupSettingUpdate(chatId, 'unlocked');
-            await sock.sendMessage(chatId, { text: '🔓 Les membres peuvent modifier les infos du groupe.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '🔓 Members can change group info.' }, { quoted: message });
             break;
         case 'slowmode': {
             if (!await requireAdmin(sock, chatId, message, owner)) break;
             const seconds = Number(commandArgs);
             if (!Number.isInteger(seconds) || seconds < 0 || seconds > 3600) {
-                await sock.sendMessage(chatId, { text: '❌ Utilise .slowmode 0 à 3600. Cela configure le rappel du bot.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ Use .slowmode 0 to 3600. This configures the bot reminder.' }, { quoted: message });
                 break;
             }
             const state = groupState(chatId);
             state[chatId].slowmode = seconds;
             writeState(state);
-            await sock.sendMessage(chatId, { text: `✅ Slowmode configuré à ${seconds}s pour les fonctions du bot.` }, { quoted: message });
+            await sock.sendMessage(chatId, { text: `✅ Slowmode set to ${seconds}s for the bot features.` }, { quoted: message });
             break;
         }
         case 'clearwarns': {
             if (!await requireAdmin(sock, chatId, message, owner)) break;
             const targets = getTargets(message);
             if (!targets.length) {
-                await sock.sendMessage(chatId, { text: '❌ Mentionne ou réponds à un membre.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ Mention or reply to a member.' }, { quoted: message });
                 break;
             }
             const warningsFile = path.join(__dirname, '../data/warnings.json');
@@ -229,7 +229,7 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             try { warnings = JSON.parse(fs.readFileSync(warningsFile, 'utf8')); } catch {}
             for (const jid of targets) delete warnings[`${chatId}_${jid}`];
             fs.writeFileSync(warningsFile, JSON.stringify(warnings, null, 2));
-            await sock.sendMessage(chatId, { text: '✅ Avertissements réinitialisés.', mentions: targets }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '✅ Warnings reset.', mentions: targets }, { quoted: message });
             break;
         }
         case 'promoteall':
@@ -238,11 +238,11 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             const targets = command === 'promoteall' ? nonAdmins : admins.filter(p => !p.superadmin);
             const limited = targets.slice(0, 20);
             if (!limited.length) {
-                await sock.sendMessage(chatId, { text: 'ℹ️ Aucun membre concerné.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: 'ℹ️ No member affected.' }, { quoted: message });
                 break;
             }
             await sock.groupParticipantsUpdate(chatId, mentionJids(limited), command === 'promoteall' ? 'promote' : 'demote');
-            await sock.sendMessage(chatId, { text: `✅ ${limited.length} membre(s) traité(s).`, mentions: mentionJids(limited) }, { quoted: message });
+            await sock.sendMessage(chatId, { text: `✅ ${limited.length} member(s) processed.`, mentions: mentionJids(limited) }, { quoted: message });
             break;
         }
         case 'approveall': {
@@ -250,7 +250,7 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             if (typeof sock.groupRequestParticipantsList !== 'function' ||
                 typeof sock.groupRequestParticipantsUpdate !== 'function') {
                 await sock.sendMessage(chatId, {
-                    text: '❌ Cette version de Baileys ne permet pas de traiter les demandes d’adhésion.',
+                    text: '❌ This version of Baileys cannot process join requests.',
                     ...channelInfo
                 }, { quoted: message });
                 break;
@@ -260,9 +260,9 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
             try {
                 requests = await sock.groupRequestParticipantsList(chatId) || [];
             } catch (error) {
-                console.error('[approveall] lecture des demandes impossible :', error.message);
+                console.error('[approveall] unable to read requests:', error.message);
                 await sock.sendMessage(chatId, {
-                    text: '❌ Impossible de lire les demandes d’adhésion du groupe.',
+                    text: '❌ Failed to read the group join requests.',
                     ...channelInfo
                 }, { quoted: message });
                 break;
@@ -273,7 +273,7 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
                 .filter(Boolean);
             if (!requestJids.length) {
                 await sock.sendMessage(chatId, {
-                    text: 'ℹ️ Aucune demande d’adhésion en attente.',
+                    text: 'ℹ️ No pending join requests.',
                     ...channelInfo
                 }, { quoted: message });
                 break;
@@ -286,34 +286,34 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
                     await sock.groupRequestParticipantsUpdate(chatId, batch, 'approve');
                     approved += batch.length;
                 } catch (error) {
-                    console.error('[approveall] approbation du lot impossible :', error.message);
+                    console.error('[approveall] unable to approve batch:', error.message);
                     for (const jid of batch) {
                         try {
                             await sock.groupRequestParticipantsUpdate(chatId, [jid], 'approve');
                             approved += 1;
                         } catch (individualError) {
-                            console.error(`[approveall] demande refusée pour ${jid} :`, individualError.message);
+                            console.error(`[approveall] request refused for ${jid}:`, individualError.message);
                         }
                     }
                 }
             }
             await sock.sendMessage(chatId, {
-                text: `✅ ${approved}/${requestJids.length} demande(s) d’adhésion approuvée(s).`,
+                text: `✅ ${approved}/${requestJids.length} join request(s) approved.`,
                 ...channelInfo
             }, { quoted: message });
             break;
         }
         case 'kickbots':
-            await sock.sendMessage(chatId, { text: 'ℹ️ WhatsApp ne fournit pas une liste fiable des bots. Mentionne les comptes à retirer avec .kick pour éviter une suppression accidentelle.' }, { quoted: message });
+            await sock.sendMessage(chatId, { text: 'ℹ️ WhatsApp does not provide a reliable list of bots. Mention the accounts to remove with .kick to avoid accidental deletion.' }, { quoted: message });
             break;
         case 'poll': {
             if (!commandArgs.includes('|')) {
-                await sock.sendMessage(chatId, { text: '❌ Utilise .poll Question | Option 1 | Option 2.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ Use .poll Question | Option 1 | Option 2.' }, { quoted: message });
                 break;
             }
             const [question, ...values] = commandArgs.split('|').map(value => value.trim()).filter(Boolean);
             if (values.length < 2) {
-                await sock.sendMessage(chatId, { text: '❌ Ajoute au moins deux options.' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: '❌ Add at least two options.' }, { quoted: message });
                 break;
             }
             await sock.sendMessage(chatId, { poll: { name: question, values: values.slice(0, 12), selectableCount: 1 } });
@@ -321,12 +321,12 @@ async function handleGroupExtraCommand(sock, chatId, message, command, args, own
         }
         case 'groupaudit':
             await sock.sendMessage(chatId, {
-                text: `🔎 Audit\n• Nom : ${meta.subject}\n• JID : ${chatId}\n• Membres : ${participants.length}\n• Admins : ${admins.length}\n• Bot admin : ${admins.some(p => participantNumber(p) === participantNumber({ id: sock.user?.id })) ? 'oui' : 'non'}`
+                text: `🔎 Audit\n• Name: ${meta.subject}\n• JID: ${chatId}\n• Members: ${participants.length}\n• Admins: ${admins.length}\n• Bot admin: ${admins.some(p => participantNumber(p) === participantNumber({ id: sock.user?.id })) ? 'yes' : 'no'}`
             }, { quoted: message });
             break;
         case 'groupmenu':
             await sock.sendMessage(chatId, {
-                text: `📚 Commandes groupe\n${GROUP_COMMANDS.map(name => `• .${name}`).join('\n')}`
+                text: `📚 Group commands\n${GROUP_COMMANDS.map(name => `• .${name}`).join('\n')}`
             }, { quoted: message });
             break;
         default:

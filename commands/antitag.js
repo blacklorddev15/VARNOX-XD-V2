@@ -4,7 +4,7 @@ const { setAntitag, getAntitag, removeAntitag } = require('../lib/index');
 const isAdmin = require('../lib/isAdmin');
 const { channelInfo } = require('../lib/messageConfig');
 
-// ─── Commande .antitag ────────────────────────────────────────────────────────
+// ─── Command .antitag ────────────────────────────────────────────────────────
 async function handleAntitagCommand(sock, chatId, userMessage, senderId, isSenderAdmin, message) {
     try {
         if (!isSenderAdmin) {
@@ -29,7 +29,7 @@ async function handleAntitagCommand(sock, chatId, userMessage, senderId, isSende
         switch (action) {
             case 'on': {
                 const existingConfig = await getAntitag(chatId, 'on');
-                // FIX: la DB stocke `.enabled`, pas `.activé`
+                // FIX: the DB stores `.enabled`, not `.activé`
                 if (existingConfig?.enabled) {
                     await sock.sendMessage(chatId, { text: '*_Antitag is already on_*', ...channelInfo }, { quoted: message });
                     return;
@@ -77,7 +77,7 @@ async function handleAntitagCommand(sock, chatId, userMessage, senderId, isSende
                     text:
                         `*_Antitag Configuration:_*\n` +
                         `Status: ${status?.enabled ? 'ON ✅' : 'OFF ❌'}\n` +
-                        `Action: ${status?.action || 'Non défini'}`,
+                        `Action: ${status?.action || 'Not set'}`,
                     ...channelInfo
                 }, { quoted: message });
                 break;
@@ -90,32 +90,32 @@ async function handleAntitagCommand(sock, chatId, userMessage, senderId, isSende
                 }, { quoted: message });
         }
     } catch (error) {
-        console.error('[antitag] Erreur commande:', error.message);
+        console.error('[antitag] Command error:', error.message);
         await sock.sendMessage(chatId, { text: '*_Error processing antitag command_*', ...channelInfo }, { quoted: message });
     }
 }
 
-// ─── Détection automatique du tagall dans les groupes ────────────────────────
+// ─── Automatic tagall detection in groups ────────────────────────
 async function handleTagDetection(sock, chatId, message, senderId) {
     try {
         const antitagSetting = await getAntitag(chatId, 'on');
 
-        // FIX CRITIQUE : la DB stocke `.enabled`, pas `.activé`
+        // CRITICAL FIX: the DB stores `.enabled`, not `.activé`
         if (!antitagSetting || !antitagSetting.enabled) return;
 
-        // Ignorer les messages du bot lui-même
+        // Ignore messages from the bot itself
         if (message.key.fromMe) return;
 
-        // Ignorer les admins
+        // Ignore admins
         try {
             const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
             if (isSenderAdmin) return;
         } catch { /* continue */ }
 
-        // Mentions officielles WhatsApp
+        // Official WhatsApp mentions
         const mentionedJids = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
 
-        // Texte du message
+        // Message text
         const messageText =
             message.message?.conversation ||
             message.message?.extendedTextMessage?.text ||
@@ -123,7 +123,7 @@ async function handleTagDetection(sock, chatId, message, senderId) {
             message.message?.videoMessage?.caption ||
             '';
 
-        // Mentions numériques dans le texte (pattern bot tagall)
+        // Numeric mentions in the text (bot tagall pattern)
         const numericMentions   = messageText.match(/@\d{8,}/g) || [];
         const uniqueNumericNums = new Set(numericMentions.map(m => m.replace('@', '')));
 
@@ -133,7 +133,7 @@ async function handleTagDetection(sock, chatId, message, senderId) {
 
         if (totalMentions < 3) return;
 
-        // Seuil : plus de 50 % des membres
+        // Threshold : more than 50% of members
         const groupMetadata   = await sock.groupMetadata(chatId);
         const participants    = groupMetadata.participants || [];
         const mentionThreshold = Math.ceil(participants.length * 0.5);
@@ -146,7 +146,7 @@ async function handleTagDetection(sock, chatId, message, senderId) {
 
         const action = antitagSetting.action || 'delete';
 
-        // Supprimer le message
+        // Delete the message
         try {
             await sock.sendMessage(chatId, {
                 delete: {
@@ -156,11 +156,11 @@ async function handleTagDetection(sock, chatId, message, senderId) {
                     participant: senderId
                 }
             });
-        } catch { /* le message a peut-être déjà disparu */ }
+        } catch { /* the message may already be gone */ }
 
         if (action === 'delete') {
             await sock.sendMessage(chatId, {
-                text: `⚠️ *Tagall interdit !* @${senderId.split('@')[0]} a été averti.`,
+                text: `⚠️ *Tagall forbidden!* @${senderId.split('@')[0]} has been warned.`,
                 mentions: [senderId],
                 ...channelInfo
             });
@@ -168,17 +168,17 @@ async function handleTagDetection(sock, chatId, message, senderId) {
             try {
                 await sock.groupParticipantsUpdate(chatId, [senderId], 'remove');
                 await sock.sendMessage(chatId, {
-                    text: `🚫 *Antitag :* @${senderId.split('@')[0]} a été expulsé pour avoir tagué tous les membres.`,
+                    text: `🚫 *Antitag :* @${senderId.split('@')[0]} was kicked for tagging all members.`,
                     mentions: [senderId],
                     ...channelInfo
                 });
             } catch (e) {
-                console.error('[antitag] Erreur kick:', e.message);
+                console.error('[antitag] Kick error:', e.message);
             }
         }
 
     } catch (error) {
-        console.error('[antitag] Erreur détection:', error.message);
+        console.error('[antitag] Detection error:', error.message);
     }
 }
 

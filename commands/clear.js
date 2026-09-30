@@ -8,7 +8,7 @@ async function clearCommand(sock, chatId) {
         
     } catch (error) {
         console.error('Error clearing messages:', error);
-        await sock.sendMessage(chatId, { text: 'Une erreur est survenue lors de clearing messages.' });
+        await sock.sendMessage(chatId, { text: 'An error occurred while clearing messages.' });
     }
 }
 

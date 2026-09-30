@@ -46,13 +46,13 @@ async function fetchScreenshot(url) {
             if (contentType.includes('json')) {
                 const data = await response.json();
                 const imageUrl = data?.data?.screenshot?.url || data?.screenshot?.url;
-                if (!imageUrl) throw new Error(`${provider.name}: image absente`);
+                if (!imageUrl) throw new Error(`${provider.name}: missing image`);
                 const imageResponse = await fetchWithTimeout(imageUrl);
                 if (!imageResponse.ok) throw new Error(`${provider.name}: image HTTP ${imageResponse.status}`);
                 return imageResponse.buffer();
             }
             const buffer = await response.buffer();
-            if (buffer.length < 100) throw new Error(`${provider.name}: réponse vide`);
+            if (buffer.length < 100) throw new Error(`${provider.name}: empty response`);
             return buffer;
         } catch (error) {
             errors.push(error.message);
@@ -98,7 +98,7 @@ async function handleSsCommand(sock, chatId, message, match) {
     } catch (error) {
         console.error('❌ Error in ss command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ Failed to take screenshot. Veuillez réessayer in a few minutes.\n\nPossible reasons:\n• Invalid URL\n• Website is blocking screenshots\n• Website is down\n• API service is temporarily unavailable',
+            text: '❌ Failed to take screenshot. Please try again in a few minutes.\n\nPossible reasons:\n• Invalid URL\n• Website is blocking screenshots\n• Website is down\n• API service is temporarily unavailable',
             quoted: message
         });
     }

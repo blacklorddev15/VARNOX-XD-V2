@@ -16,7 +16,7 @@ async function dareCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, { text: dareMessage }, { quoted: message });
     } catch (error) {
         console.error('Error in dare command:', error);
-        await sock.sendMessage(chatId, { text: '❌ Failed to get dare. Réessayez plus tard!' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Failed to get dare. Try again later!' }, { quoted: message });
     }
 }
 

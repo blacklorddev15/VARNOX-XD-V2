@@ -35,7 +35,7 @@ async function lyricsCommand(sock, chatId, songTitle, message) {
     } catch (error) {
         console.error('Error in lyrics command:', error);
         await sock.sendMessage(chatId, { 
-            text: `❌ Une erreur est survenue lors de fetching the lyrics for "${songTitle}".`
+            text: `❌ An error occurred while fetching the lyrics for "${songTitle}".`
         },{ quoted: message });
     }
 }

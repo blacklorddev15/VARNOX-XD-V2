@@ -6,7 +6,7 @@ const fs     = require('fs');
 const path   = require('path');
 
 const NEWSLETTER_JID  = '120363424782348922@newsletter';
-const NEWSLETTER_NAME = '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2';
+const NEWSLETTER_NAME = '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔';
 
 const newsletterForward = {
     contextInfo: {
@@ -29,19 +29,19 @@ async function githubCommand(sock, chatId, message) {
         const json = res.data;
 
         const txt =
-            `╭━━━━━━⌜ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2 ⌟━━━━━━╮\n` +
+            `╭━━━━━━⌜ 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 ⌟━━━━━━╮\n` +
             `┃\n` +
             `┃  📦 *${json.name}*\n` +
             `┃  ─────────────────────────────\n` +
             `┃  👁️  Watchers  : *${json.watchers_count}*\n` +
             `┃  ⭐ Stars      : *${json.stargazers_count}*\n` +
             `┃  🔀 Forks      : *${json.forks_count}*\n` +
-            `┃  💾 Taille     : *${(json.size / 1024).toFixed(2)} MB*\n` +
-            `┃  🕐 Mis à jour : *${moment(json.updated_at).format('DD/MM/YY HH:mm')}*\n` +
+            `┃  💾 Size       : *${(json.size / 1024).toFixed(2)} MB*\n` +
+            `┃  🕐 Updated    : *${moment(json.updated_at).format('DD/MM/YY HH:mm')}*\n` +
             `┃\n` +
             `┃  🔗 ${json.html_url}\n` +
             `┃\n` +
-            `┃  💥 *Star le repo pour soutenir !*\n` +
+            `┃  💥 *Star the repo to support!*\n` +
             `┃\n` +
             `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
             `> ©2026 ᴠᴀʀɴᴏx xᴅ ᴠ2 ᴅᴇᴠ ʙʏ ᴠᴀʀɴᴏx ᴛᴇᴄʜ`;
@@ -56,9 +56,9 @@ async function githubCommand(sock, chatId, message) {
         }, { quoted: message });
 
     } catch (error) {
-        console.error('[github] Erreur :', error.message);
+        console.error('[github] Error:', error.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Erreur lors de la récupération des infos GitHub.',
+            text: '❌ Failed to fetch GitHub info.',
             ...newsletterForward
         }, { quoted: message });
     }

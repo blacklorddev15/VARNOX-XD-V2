@@ -8,7 +8,7 @@ async function attpCommand(sock, chatId, message) {
     const text = userMessage.split(' ').slice(1).join(' ');
 
     if (!text) {
-        await sock.sendMessage(chatId, { text: 'Veuillez fournir un texte après .attp' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: 'Please provide a text after .attp' }, { quoted: message });
         return;
     }
 
@@ -20,7 +20,7 @@ async function attpCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, { sticker: webpBuffer }, { quoted: message });
     } catch (error) {
         console.error('Error generating local sticker:', error);
-        await sock.sendMessage(chatId, { text: 'Échec de la génération du sticker.' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: 'Failed to generate the sticker.' }, { quoted: message });
     }
 }
 

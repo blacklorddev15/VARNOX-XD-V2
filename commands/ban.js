@@ -38,20 +38,20 @@ async function banCommand(sock, chatId, message) {
             fs.writeFileSync('./data/banned.json', JSON.stringify(bannedUsers, null, 2));
 
             await sock.sendMessage(chatId, {
-                text: `Banni avec succès @${userToBan.split('@')[0]}!`,
+                text: `Banned successfully @${userToBan.split('@')[0]}!`,
                 mentions: [userToBan],
                 ...channelInfo
             });
         } else {
             await sock.sendMessage(chatId, {
-                text: `${userToBan.split('@')[0]} est déjà banni !`,
+                text: `${userToBan.split('@')[0]} is already banned!`,
                 mentions: [userToBan],
                 ...channelInfo
             });
         }
     } catch (error) {
         console.error('Error in ban command:', error);
-        await sock.sendMessage(chatId, { text: 'Échec du bannissement !', ...channelInfo });
+        await sock.sendMessage(chatId, { text: 'Failed to ban!', ...channelInfo });
     }
 }
 

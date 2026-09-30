@@ -10,12 +10,12 @@ const IMAGE_PATH = path.join(__dirname, '../assets/bot_image.jpg');
 
 function repoCaption() {
     return [
-        '╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟',
+        '╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟',
         '┃⌬╭━━━━━━━━━━━━━≽',
-        '┃⌬┃ 🤖 *VARNOX XD V2*',
+        '┃⌬┃ 🤖 *VARNOX X ULTRA*',
         '╰━━━━━━━━━━━━❍',
         '',
-        '✅ *Website disponible*',
+        '✅ *Website available*',
         WEBSITE_URL,
         '',
         '> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ'
@@ -27,14 +27,14 @@ function repoButtons() {
         {
             name: 'cta_url',
             params: {
-                display_text: '↗️ Ouvrir le site',
+                display_text: '↗️ Open the site',
                 url: WEBSITE_URL
             }
         },
         {
             name: 'cta_copy',
             params: {
-                display_text: '📋 Copier le lien',
+                display_text: '📋 Copy the link',
                 copy_code: WEBSITE_URL
             }
         }
@@ -45,8 +45,8 @@ async function repoCommand(sock, chatId, message) {
     const image = fs.existsSync(IMAGE_PATH) ? fs.readFileSync(IMAGE_PATH) : null;
     const options = {
         body: repoCaption(),
-        footer: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
-        title: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+        footer: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
+        title: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
         contextInfo: channelInfo.contextInfo,
         buttons: repoButtons(),
         quoted: message

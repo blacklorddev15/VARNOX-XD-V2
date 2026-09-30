@@ -6,7 +6,7 @@ async function antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin
     try {
         if (!isSenderAdmin) {
             await sock.sendMessage(chatId, {
-                text: '❌ Cette commande est réservée aux administrateurs du groupe.',
+                text: '❌ This command is restricted to group admins.',
                 ...channelInfo
             }, { quoted: message });
             return;
@@ -21,7 +21,7 @@ async function antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin
     } catch (error) {
         console.error('Error in antibadword command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ Une erreur a empêché VARNOX de traiter antibadword.',
+            text: '❌ An error prevented VARNOX from processing antibadword.',
             ...channelInfo
         }, { quoted: message });
     }

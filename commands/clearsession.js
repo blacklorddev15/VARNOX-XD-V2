@@ -9,7 +9,7 @@ const channelInfo = {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363424782348922@newsletter',
-            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+            newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
             serverMessageId: -1
         }
     }
@@ -22,7 +22,7 @@ async function clearSessionCommand(sock, chatId, msg) {
         
         if (!msg.key.fromMe && !isOwner) {
             await sock.sendMessage(chatId, { 
-                text: '❌ Cette commande est réservée au propriétaire !',
+                text: '❌ This command is reserved for the owner!',
                 ...channelInfo
             });
             return;
@@ -92,7 +92,7 @@ async function clearSessionCommand(sock, chatId, msg) {
     } catch (error) {
         console.error('Error in clearsession command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Échec de la suppression des fichiers de session !',
+            text: '❌ Failed to delete session files!',
             ...channelInfo
         });
     }

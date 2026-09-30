@@ -5,7 +5,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 async function ensureGroup(sock, chatId) {
     const isGroup = chatId.endsWith('@g.us');
     if (!isGroup) {
-        await sock.sendMessage(chatId, { text: 'Cette commande ne fonctionne que dans les groupes.' });
+        await sock.sendMessage(chatId, { text: 'This command only works in groups.' });
         return { ok: false };
     }
     return { ok: true };

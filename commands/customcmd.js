@@ -56,7 +56,7 @@ function commandName(value) {
 
 async function readStickerBuffer(stickerMessage) {
     if (!stickerMessage || typeof stickerMessage !== 'object') {
-        throw new Error('Sticker introuvable.');
+        throw new Error('Sticker not found.');
     }
     const stream = await downloadContentFromMessage(stickerMessage, 'sticker');
     const chunks = [];
@@ -68,7 +68,7 @@ async function setCmdCommand(sock, chatId, message, args) {
     const name = commandName(Array.isArray(args) ? args[0] : args);
     if (!/^[a-z0-9_-]{2,32}$/.test(name)) {
         await sock.sendMessage(chatId, {
-            text: '❌ Utilise `.setcmd nomcommande` en répondant à un sticker.'
+            text: '❌ Use `.setcmd commandname` while replying to a sticker.'
         }, { quoted: message });
         return;
     }
@@ -77,14 +77,14 @@ async function setCmdCommand(sock, chatId, message, args) {
     const sticker = quoted?.stickerMessage;
     if (!sticker) {
         await sock.sendMessage(chatId, {
-            text: '❌ Réponds à un sticker avec `.setcmd nomcommande`.'
+            text: '❌ Reply to a sticker with `.setcmd commandname`.'
         }, { quoted: message });
         return;
     }
 
     const buffer = await readStickerBuffer(sticker);
     if (!buffer.length || buffer.length > 2 * 1024 * 1024) {
-        throw new Error('Le sticker est vide ou trop volumineux.');
+        throw new Error('The sticker is empty or too large.');
     }
 
     const store = readStore();
@@ -98,7 +98,7 @@ async function setCmdCommand(sock, chatId, message, args) {
     writeStore(store);
 
     await sock.sendMessage(chatId, {
-        text: `✅ Commande créée : *.${name}*\nRéponds avec ce nom pour envoyer le sticker.`
+        text: `✅ Command created : *.${name}*\nReply with this name to send the sticker.`
     }, { quoted: message });
 }
 

@@ -53,7 +53,7 @@ async function stickercropCommand(sock, chatId, message) {
 
         if (!mediaBuffer) {
             await sock.sendMessage(chatId, { 
-                text: 'Failed to download media. Veuillez réessayer.',
+                text: 'Failed to download media. Please try again.',
                 contextInfo: {
                     forwardingScore: 999,
                     isForwarded: true,

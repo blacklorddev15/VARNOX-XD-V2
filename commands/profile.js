@@ -16,7 +16,7 @@ async function profileCommand(sock, chatId, message) {
     const target = getTargetJid(message);
     if (!target) {
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible de déterminer le profil demandé.',
+            text: '❌ Unable to determine the requested profile.',
             ...channelInfo
         }, { quoted: message });
         return;
@@ -30,10 +30,10 @@ async function profileCommand(sock, chatId, message) {
     } catch {}
 
     const text =
-        `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗢𝗙𝗜𝗟⟫──╮\n` +
-        `┃⌬┃ 👤 Nom : ${name}\n` +
-        `┃⌬┃ 🆔 Mention : @${displayNumber(target)}\n` +
-        `┃⌬┃ 📍 Type : ${target.endsWith('@g.us') ? 'Groupe' : 'Membre'}\n` +
+        `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗢𝗙𝗜𝗟𝗘⟫──╮\n` +
+        `┃⌬┃ 👤 Name: ${name}\n` +
+        `┃⌬┃ 🆔 Mention: @${displayNumber(target)}\n` +
+        `┃⌬┃ 📍 Type: ${target.endsWith('@g.us') ? 'Group' : 'Member'}\n` +
         `╰━━━━━━━━━━━━❍`;
 
     let profilePicture;

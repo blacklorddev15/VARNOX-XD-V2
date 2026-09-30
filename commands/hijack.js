@@ -7,7 +7,7 @@ const { channelInfo } = require('../lib/messageConfig');
 
 const STATE_FILE = path.join(__dirname, '../data/hijack.json');
 const MAX_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
-const DEFAULT_MESSAGE = '🛑 𝗛𝗜𝗝𝗔𝗖𝗞 𝗔𝗖𝗧𝗜𝗩𝗘\n🔐 Groupe temporairement verrouillé.\n⚡ Contrôle : 𝗩꯭𝗔꯭𝗥꯭𝗡꯭𝗢꯭𝗫꯭͡ 𝗫꯭𝗧꯭𝗘꯭𝗖꯭𝗛꯭͡\n🛡️ Mode sécurité activé.';
+const DEFAULT_MESSAGE = '🛑 𝗛𝗜𝗝𝗔𝗖𝗞 𝗔𝗖𝗧𝗜𝗩𝗘\n🔐 Group temporarily locked.\n⚡ Control: 𝗩꯭𝗔꯭𝗥꯭𝗡꯭𝗢꯭𝗫꯭͡ 𝗫꯭𝗧꯭𝗘꯭𝗖꯭𝗛꯭͡\n🛡️ Security mode enabled.';
 const expiryTimers = new Map();
 
 function ensureStateFile() {
@@ -21,7 +21,7 @@ function readState() {
         const value = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
         return value && typeof value === 'object' ? value : {};
     } catch (error) {
-        console.error('[hijack] lecture impossible :', error.message);
+        console.error('[hijack] unable to read:', error.message);
         return {};
     }
 }
@@ -74,7 +74,7 @@ async function expireHijack(sock, chatId) {
     try {
         await sock.groupSettingUpdate(chatId, 'not_announcement');
     } catch (error) {
-        console.error('[hijack] déverrouillage automatique impossible :', error.message);
+        console.error('[hijack] automatic unlock failed:', error.message);
         scheduleExpiry(sock, chatId, Date.now() + 10000);
         return;
     }
@@ -82,7 +82,7 @@ async function expireHijack(sock, chatId) {
     record.until = null;
     state[chatId] = record;
     writeState(state);
-    await send(sock, chatId, null, '🔓 HIJACK terminé. Le groupe est de nouveau ouvert.');
+    await send(sock, chatId, null, '🔓 HIJACK finished. The group is open again.');
 }
 
 function parseDuration(value) {
@@ -107,11 +107,11 @@ async function requirePermissions(sock, chatId, message, owner) {
     const senderId = message.key.participant || message.key.remoteJid;
     const status = await isAdmin(sock, chatId, senderId);
     if (!owner && !status.isSenderAdmin) {
-        await send(sock, chatId, message, '❌ Cette commande est réservée aux admins.');
+        await send(sock, chatId, message, '❌ This command is reserved for admins.');
         return null;
     }
     if (!status.isBotAdmin) {
-        await send(sock, chatId, message, '❌ Le bot doit être admin avant d’utiliser HIJACK.');
+        await send(sock, chatId, message, '❌ The bot must be an admin before using HIJACK.');
         return null;
     }
     return status;
@@ -126,16 +126,16 @@ function botParticipantId(sock) {
 }
 
 /**
- * HIJACK doit retirer les privilèges des admins avant de fermer le groupe.
- * Le superadmin/créateur et certains comptes protégés peuvent être refusés
- * par WhatsApp : une erreur individuelle ne doit pas empêcher le verrouillage.
+ * HIJACK must strip admin privileges before closing the group.
+ * The superadmin/creator and some protected accounts may be refused
+ * by WhatsApp: an individual error must not prevent the lock.
  */
 async function demoteGroupAdmins(sock, chatId) {
     let metadata;
     try {
         metadata = await sock.groupMetadata(chatId);
     } catch (error) {
-        console.error('[hijack] métadonnées indisponibles pour la rétrogradation :', error.message);
+        console.error('[hijack] metadata unavailable for demotion:', error.message);
         return 0;
     }
 
@@ -152,14 +152,14 @@ async function demoteGroupAdmins(sock, chatId) {
         await sock.groupParticipantsUpdate(chatId, targets, 'demote');
         return targets.length;
     } catch (error) {
-        console.error('[hijack] rétrogradation groupée refusée :', error.message);
+        console.error('[hijack] bulk demotion refused:', error.message);
         let demoted = 0;
         for (const jid of targets) {
             try {
                 await sock.groupParticipantsUpdate(chatId, [jid], 'demote');
                 demoted += 1;
             } catch (individualError) {
-                console.error(`[hijack] impossible de rétrograder ${jid} :`, individualError.message);
+                console.error(`[hijack] unable to demote ${jid}:`, individualError.message);
             }
         }
         return demoted;
@@ -168,17 +168,17 @@ async function demoteGroupAdmins(sock, chatId) {
 
 function usage() {
     return '🛡️ *HIJACK*\n' +
-        '• .hijack — verrouiller le groupe\n' +
-        '• .hijack 10m / 1h — verrouiller temporairement\n' +
-        '• .hijack status — voir l’état\n' +
-        '• .hijack set message — définir le message du groupe\n' +
-        '• .hijack reset — remettre le message par défaut\n' +
-        '• .hijack off — désactiver et déverrouiller';
+        '• .hijack — lock the group\n' +
+        '• .hijack 10m / 1h — lock temporarily\n' +
+        '• .hijack status — view the status\n' +
+        '• .hijack set message — set the group message\n' +
+        '• .hijack reset — reset the message to default\n' +
+        '• .hijack off — disable and unlock';
 }
 
 async function handleHijackCommand(sock, chatId, message, args = [], owner = false) {
     if (!chatId.endsWith('@g.us')) {
-        await send(sock, chatId, message, '❌ Cette commande fonctionne uniquement dans les groupes.');
+        await send(sock, chatId, message, '❌ This command only works in groups.');
         return true;
     }
     if (!await requirePermissions(sock, chatId, message, owner)) return true;
@@ -195,10 +195,10 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
 
     if (action === 'status') {
         const current = getRecord(readState(), chatId);
-        const remaining = current.enabled && current.until ? '\n⏱️ Temps restant : ' + formatDuration(current.until - Date.now()) : '';
+        const remaining = current.enabled && current.until ? '\n⏱️ Time remaining: ' + formatDuration(current.until - Date.now()) : '';
         await send(sock, chatId, message, current.enabled
-            ? '🛡️ HIJACK : *ACTIF*\n🔐 Groupe verrouillé.' + remaining
-            : '🛡️ HIJACK : *INACTIF*\n🔓 Groupe ouvert.');
+            ? '🛡️ HIJACK : *ACTIVE*\n🔐 Group locked.' + remaining
+            : '🛡️ HIJACK : *INACTIVE*\n🔓 Group open.');
         return true;
     }
 
@@ -206,8 +206,8 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
         try {
             await sock.groupSettingUpdate(chatId, 'not_announcement');
         } catch (error) {
-            console.error('[hijack] déverrouillage impossible :', error.message);
-            await send(sock, chatId, message, '❌ Impossible de déverrouiller le groupe.');
+            console.error('[hijack] unlock failed:', error.message);
+            await send(sock, chatId, message, '❌ Failed to unlock the group.');
             return true;
         }
         clearExpiry(chatId);
@@ -215,20 +215,20 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
         record.until = null;
         state[chatId] = record;
         writeState(state);
-        await send(sock, chatId, message, '✅ HIJACK désactivé. Le groupe est de nouveau ouvert.');
+        await send(sock, chatId, message, '✅ HIJACK disabled. The group is open again.');
         return true;
     }
 
     if (action === 'set') {
         const customMessage = args.slice(1).join(' ').trim();
         if (!customMessage) {
-            await send(sock, chatId, message, '❌ Utilise : .hijack set Ton message personnalisé');
+            await send(sock, chatId, message, '❌ Usage: .hijack set Your custom message');
             return true;
         }
         record.message = customMessage;
         state[chatId] = record;
         writeState(state);
-        await send(sock, chatId, message, '✅ Message HIJACK enregistré pour ce groupe.');
+        await send(sock, chatId, message, '✅ HIJACK message saved for this group.');
         return true;
     }
 
@@ -236,7 +236,7 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
         record.message = DEFAULT_MESSAGE;
         state[chatId] = record;
         writeState(state);
-        await send(sock, chatId, message, '✅ Message HIJACK remis par défaut.');
+        await send(sock, chatId, message, '✅ HIJACK message reset to default.');
         return true;
     }
 
@@ -250,8 +250,8 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
     try {
         await sock.groupSettingUpdate(chatId, 'announcement');
     } catch (error) {
-        console.error('[hijack] verrouillage impossible :', error.message);
-        await send(sock, chatId, message, '❌ Impossible de verrouiller le groupe.');
+        console.error('[hijack] lock failed:', error.message);
+        await send(sock, chatId, message, '❌ Failed to lock the group.');
         return true;
     }
 
@@ -263,7 +263,7 @@ async function handleHijackCommand(sock, chatId, message, args = [], owner = fal
     if (record.until) scheduleExpiry(sock, chatId, record.until);
 
     await send(sock, chatId, message, record.message);
-    if (duration) await send(sock, chatId, message, '⏱️ HIJACK actif pendant *' + formatDuration(duration) + '*.');
+    if (duration) await send(sock, chatId, message, '⏱️ HIJACK active for *' + formatDuration(duration) + '*.');
     return true;
 }
 
@@ -272,7 +272,7 @@ function restoreHijackTimers(sock) {
     for (const chatId of Object.keys(state)) {
         const record = getRecord(state, chatId);
         if (!record.enabled || !record.until) continue;
-        if (record.until <= Date.now()) expireHijack(sock, chatId).catch(error => console.error('[hijack] restauration impossible :', error.message));
+        if (record.until <= Date.now()) expireHijack(sock, chatId).catch(error => console.error('[hijack] restore failed:', error.message));
         else scheduleExpiry(sock, chatId, record.until);
     }
 }

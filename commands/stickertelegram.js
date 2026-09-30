@@ -78,7 +78,7 @@ async function addStickerMetadata(buffer, emoji) {
     await image.load(buffer);
     const metadata = {
         'sticker-pack-id': `https://github.com/mohamedsoumahv99-bot/VARNOX-XD-V2`,
-        'sticker-pack-name': settings.packname || 'VARNOX XD V2',
+        'sticker-pack-name': settings.packname || 'VARNOX X ULTRA',
         'sticker-pack-publisher': settings.author || settings.developer || 'VARNOX',
         emojis: emoji ? [emoji] : ['🤖']
     };
@@ -123,13 +123,13 @@ async function stickerTelegramCommand(sock, chatId, message) {
 
     if (!packName) {
         await sock.sendMessage(chatId, {
-            text: '╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⟫──╮\n┃⌬┃ Utilise : .tg https://t.me/addstickers/NOM_DU_PACK\n╰━━━━━━━━━━━━❍'
+            text: '╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⟫──╮\n┃⌬┃ Use: .tg https://t.me/addstickers/PACK_NAME\n╰━━━━━━━━━━━━❍'
         }, { quoted: message });
         return;
     }
     if (!botToken) {
         await sock.sendMessage(chatId, {
-            text: '❌ TELEGRAM_BOT_TOKEN n’est pas configuré. Ajoute le token Telegram du bot dans les Secrets Replit.'
+            text: '❌ TELEGRAM_BOT_TOKEN is not configured. Add the bot’s Telegram token in Replit Secrets.'
         }, { quoted: message });
         return;
     }
@@ -141,10 +141,10 @@ async function stickerTelegramCommand(sock, chatId, message) {
             `${api('getStickerSet')}?name=${encodeURIComponent(packName)}`
         );
         const stickers = (stickerSet.stickers || []).slice(0, MAX_STICKERS);
-        if (!stickers.length) throw new Error('Le pack Telegram est vide.');
+        if (!stickers.length) throw new Error('The Telegram pack is empty.');
 
         await sock.sendMessage(chatId, {
-            text: `╭──⟪𝗧𝗘𝗟𝗘𝗚𝗥𝗔𝗠 𝗦𝗧𝗜𝗖𝗞𝗘𝗥⟫──╮\n┃⌬┃ Pack : ${packName}\n┃⌬┃ Conversion de ${stickers.length} sticker(s)\n┃⌬┃ Limite VARNOX : 25 stickers\n╰━━━━━━━━━━━━❍`
+            text: `╭──⟪𝗧𝗘𝗟𝗘𝗚𝗥𝗔𝗠 𝗦𝗧𝗜𝗖𝗞𝗘𝗥⟫──╮\n┃⌬┃ Pack: ${packName}\n┃⌬┃ Converting ${stickers.length} sticker(s)\n┃⌬┃ VARNOX limit: 25 stickers\n╰━━━━━━━━━━━━❍`
         }, { quoted: message });
 
         let successCount = 0;
@@ -160,11 +160,11 @@ async function stickerTelegramCommand(sock, chatId, message) {
                 );
                 const isAnimated = Boolean(sticker.is_animated || sticker.is_video);
 
-                // .tgs est une animation Lottie gzip, pas un format que ffmpeg
-                // peut convertir directement. Les stickers statiques et .webm
-                // sont convertis ici; les .tgs sont ignorés proprement.
+                // .tgs is a gzip Lottie animation, not a format that ffmpeg
+                // can convert directly. Static stickers and .webm
+                // are converted here; .tgs files are cleanly skipped.
                 if (file.file_path.endsWith('.tgs')) {
-                    console.warn(`[stickertelegram] .tgs ignoré: ${file.file_path}`);
+                    console.warn(`[stickertelegram] .tgs skipped: ${file.file_path}`);
                     continue;
                 }
 
@@ -173,19 +173,19 @@ async function stickerTelegramCommand(sock, chatId, message) {
                 await sock.sendMessage(chatId, { sticker: finalBuffer });
                 successCount++;
             } catch (error) {
-                console.error(`[stickertelegram] sticker ignoré: ${error.message}`);
+                console.error(`[stickertelegram] sticker skipped: ${error.message}`);
             }
         }
 
         await sock.sendMessage(chatId, {
                 text: successCount
-                ? `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⟫──╮\n┃⌬┃ ✅ Conversion terminée\n┃⌬┃ 📦 Stickers envoyés : ${successCount}/${stickers.length}\n┃⌬┃ 🏷️ Pack : ${settings.packname || 'VARNOX XD V2'}\n┃⌬┃ ✍️ Auteur : ${settings.author || settings.developer || 'VARNOX'}\n╰━━━━━━━━━━━━❍`
-                : '❌ Aucun sticker Telegram compatible n’a pu être converti.'
+                ? `╭──⟪𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⟫──╮\n┃⌬┃ ✅ Conversion complete\n┃⌬┃ 📦 Stickers sent: ${successCount}/${stickers.length}\n┃⌬┃ 🏷️ Pack: ${settings.packname || 'VARNOX X ULTRA'}\n┃⌬┃ ✍️ Author: ${settings.author || settings.developer || 'VARNOX'}\n╰━━━━━━━━━━━━❍`
+                : '❌ No compatible Telegram sticker could be converted.'
         }, { quoted: message });
     } catch (error) {
-        console.error('[stickertelegram] erreur:', error);
+        console.error('[stickertelegram] error:', error);
         await sock.sendMessage(chatId, {
-            text: `❌ Impossible de convertir ce pack Telegram : ${error.message}`
+            text: `❌ Unable to convert this Telegram pack: ${error.message}`
         }, { quoted: message });
     } finally {
         fs.rmSync(workDir, { recursive: true, force: true });

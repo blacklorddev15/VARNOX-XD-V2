@@ -7,7 +7,7 @@ async function aiCommand(sock, chatId, message) {
         
         if (!text) {
             return await sock.sendMessage(chatId, { 
-                text: "Veuillez poser une question après .gpt ou .gemini\n\nExample: .gpt write a basic html code"
+                text: "Please ask a question after .gpt or .gemini\n\nExample: .gpt write a basic html code"
             }, {
                 quoted: message
             });
@@ -20,7 +20,7 @@ async function aiCommand(sock, chatId, message) {
 
         if (!query) {
             return await sock.sendMessage(chatId, { 
-                text: "Veuillez poser une question après .gpt ou .gemini"
+                text: "Please ask a question after .gpt or .gemini"
             }, {quoted:message});
         }
 
@@ -79,7 +79,7 @@ async function aiCommand(sock, chatId, message) {
         } catch (error) {
             console.error('API Error:', error);
             await sock.sendMessage(chatId, {
-                text: "❌ Échec de la réponse. Réessayez plus tard.",
+                text: "❌ Failed to get a response. Try again later.",
                 contextInfo: {
                     mentionedJid: [message.key.participant || message.key.remoteJid],
                     quotedMessage: message.message
@@ -91,7 +91,7 @@ async function aiCommand(sock, chatId, message) {
     } catch (error) {
         console.error('AI Command Error:', error);
         await sock.sendMessage(chatId, {
-            text: "❌ Une erreur s'est produite. Réessayez plus tard.",
+            text: "❌ An error occurred. Try again later.",
             contextInfo: {
                 mentionedJid: [message.key.participant || message.key.remoteJid],
                 quotedMessage: message.message

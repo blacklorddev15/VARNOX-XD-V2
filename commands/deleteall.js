@@ -5,26 +5,26 @@ const { channelInfo } = require('../lib/messageConfig');
 
 /**
  * .deleteall
- * Supprime tous les messages récents du groupe (accessibles par le bot).
+ * Deletes all recent group messages (accessible by the bot).
  */
 async function deleteAllCommand(sock, chatId, senderId, message) {
-    // Utiliser le store de l'instance courante (défini par botInstance.js)
+    // Use the current instance store (defined by botInstance.js)
     const store = sock.store || { messages: {} };
-    // Groupe uniquement
+    // Group only
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
 
-    // Confirmation et lancement
+    // Confirmation and launch
     await sock.sendMessage(chatId, {
         text:
             `╭━━━━⌜𝗗𝗘𝗟𝗘𝗧𝗘𝗔𝗟𝗟⌟\n` +
-            `┃⌬┃ 🗑️ *Suppression en cours...*\n` +
-            `┃⌬┃ Suppression de tous les messages\n` +
-            `┃⌬┃ récents du groupe. Patientez...\n` +
+            `┃⌬┃ 🗑️ *Deletion in progress...*\n` +
+            `┃⌬┃ Deleting all recent\n` +
+            `┃⌬┃ group messages. Please wait...\n` +
             `╰━━━━━━━━━━━━━━━━❍`,
         ...channelInfo
     }, { quoted: message });
@@ -39,16 +39,16 @@ async function deleteAllCommand(sock, chatId, senderId, message) {
             return sock.sendMessage(chatId, {
                 text:
                     `╭━━━━⌜𝗗𝗘𝗟𝗘𝗧𝗘𝗔𝗟𝗟⌟\n` +
-                    `┃⌬┃ ℹ️ Aucun message en cache.\n` +
-                    `┃⌬┃ Le bot ne peut supprimer que les\n` +
-                    `┃⌬┃ messages qu'il a vus depuis son\n` +
-                    `┃⌬┃ dernier démarrage.\n` +
+                    `┃⌬┃ ℹ️ No messages in cache.\n` +
+                    `┃⌬┃ The bot can only delete the\n` +
+                    `┃⌬┃ messages it has seen since its\n` +
+                    `┃⌬┃ last startup.\n` +
                     `╰━━━━━━━━━━━━━━━━❍`,
                 ...channelInfo
             }, { quoted: message });
         }
 
-        // Supprimer chaque message
+        // Delete each message
         for (const msg of chatMessages) {
             try {
                 if (!msg || !msg.key) continue;
@@ -60,7 +60,7 @@ async function deleteAllCommand(sock, chatId, senderId, message) {
             }
         }
 
-        // Vider le store pour ce groupe
+        // Clear the store for this group
         if (store.messages) {
             store.messages[chatId] = [];
         }
@@ -68,10 +68,10 @@ async function deleteAllCommand(sock, chatId, senderId, message) {
         await sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗗𝗘𝗟𝗘𝗧𝗘𝗔𝗟𝗟⌟\n` +
-                `┃⌬┃ ✅ *Nettoyage terminé*\n` +
+                `┃⌬┃ ✅ *Cleanup complete*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ 🗑️ Messages supprimés : *${deletedCount}*\n` +
-                `┃⌬┃ ❌ Échecs : *${failedCount}*\n` +
+                `┃⌬┃ 🗑️ Messages deleted : *${deletedCount}*\n` +
+                `┃⌬┃ ❌ Failures : *${failedCount}*\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             ...channelInfo
@@ -80,7 +80,7 @@ async function deleteAllCommand(sock, chatId, senderId, message) {
     } catch (err) {
         console.error('[deleteall] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Erreur lors de la suppression des messages.',
+            text: '❌ Error while deleting messages.',
             ...channelInfo
         }, { quoted: message });
     }

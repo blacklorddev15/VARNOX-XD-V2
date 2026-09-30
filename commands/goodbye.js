@@ -10,7 +10,7 @@ function commandArgs(text, command) {
 
 async function goodbyeCommand(sock, chatId, message) {
     if (!chatId.endsWith('@g.us')) {
-        await sock.sendMessage(chatId, { text: 'Cette commande ne fonctionne que dans les groupes.' });
+        await sock.sendMessage(chatId, { text: 'This command only works in groups.' });
         return;
     }
     const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
@@ -24,20 +24,20 @@ async function handleLeaveEvent(sock, id, participants) {
         try {
             const jid = participantJid(participant);
             const senderNum = jid.split('@')[0];
-            const goodbyeMsg = `👋 Au revoir @${senderNum}.`;
+            const goodbyeMsg = `👋 Goodbye @${senderNum}.`;
 
             await sendMemberEvent(sock, id, jid, goodbyeMsg);
         } catch (err) {
-            console.error('[goodbye] Erreur :', err.message);
+            console.error('[goodbye] Error:', err.message);
             try {
                 const jid = participantJid(participant);
                 const num = jid.split('@')[0];
                 await sock.sendMessage(id, {
-                    text: '👋 Au revoir @' + num + ' ! Tu vas nous manquer...',
+                    text: '👋 Goodbye @' + num + '! We\'ll miss you...',
                     mentions: [jid],
                     ...channelInfo()
                 });
-            } catch { /* rien */ }
+            } catch { /* nothing */ }
         }
     }
 }

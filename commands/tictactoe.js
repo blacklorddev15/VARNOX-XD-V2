@@ -86,7 +86,7 @@ ${arr.slice(6).join('')}
     } catch (error) {
         console.error('Error in tictactoe command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Error starting game. Veuillez réessayer.' 
+            text: '❌ Error starting game. Please try again.' 
         });
     }
 }

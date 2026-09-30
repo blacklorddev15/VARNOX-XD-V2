@@ -26,8 +26,8 @@ async function antiPromoteCommand(sock, chatId, senderId, message, args) {
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
-                `┃⌬┃ ❌ Groupe uniquement.\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
+                `┃⌬┃ ❌ Groups only.\n` +
                 `╰━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
@@ -41,14 +41,14 @@ async function antiPromoteCommand(sock, chatId, senderId, message, args) {
         writeState(state);
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
                 `┃⌬┃ 🛡️ *ANTIPROMOTE*\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `    📢𝗔𝗡𝗡𝗢𝗡𝗖𝗘 ❍𝗙𝗙𝗜𝗖𝗜𝗔𝗟\n` +
-                `┃⌬┃ ✅ Activé ! Tout membre\n` +
-                `┃⌬┃ promu sera auto-démis,\n` +
-                `┃⌬┃ même par un admin !\n` +
+                `┃⌬┃ ✅ Enabled! Any member\n` +
+                `┃⌬┃ promoted will be auto-demoted,\n` +
+                `┃⌬┃ even by an admin!\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -58,9 +58,9 @@ async function antiPromoteCommand(sock, chatId, senderId, message, args) {
         writeState(state);
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬┃ 🛡️ *ANTIPROMOTE*\n` +
-                `┃⌬┃ ❌ Désactivé.\n` +
+                `┃⌬┃ ❌ Disabled.\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -69,15 +69,15 @@ async function antiPromoteCommand(sock, chatId, senderId, message, args) {
         const enabled = !!state[chatId];
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
                 `┃⌬┃ 🛡️ *ANTIPROMOTE*\n` +
                 `╰━━━━━━━━━━━━❍\n` +
-                `┃⌬┃ Statut : *${enabled ? '✅ Activé' : '❌ Désactivé'}*\n` +
+                `┃⌬┃ Status : *${enabled ? '✅ Enabled' : '❌ Disabled'}*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ Usage :\n` +
-                `┃⌬┃ .antipromote on  — activer\n` +
-                `┃⌬┃ .antipromote off — désactiver\n` +
+                `┃⌬┃ .antipromote on  — enable\n` +
+                `┃⌬┃ .antipromote off — disable\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -86,8 +86,8 @@ async function antiPromoteCommand(sock, chatId, senderId, message, args) {
 }
 
 /**
- * Appelé depuis handleGroupParticipantUpdate quand action === 'promote'
- * Retourne true si antipromote était actif et a démis le membre.
+ * Called from handleGroupParticipantUpdate when action === 'promote'
+ * Returns true if antipromote was active and demoted the member.
  */
 async function handleAntiPromoteEvent(sock, groupId, participants) {
     if (!isAntiPromoteEnabled(groupId)) return false;
@@ -96,16 +96,16 @@ async function handleAntiPromoteEvent(sock, groupId, participants) {
         const memberList = participants.map(p => `⌬  @${p.split('@')[0]}`).join('\n');
         await sock.sendMessage(groupId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
-                `┃⌬┃ 🛡️ *ANTIPROMOTE ACTIF*\n` +
+                `┃⌬┃ 🛡️ *ANTIPROMOTE ACTIVE*\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `    🚫 𝗣𝗥𝗢𝗠𝗢𝗧𝗜𝗢𝗡 𝗥𝗘𝗙𝗨𝗦𝗘́𝗘\n` +
                 `\n` +
                 `${memberList}\n` +
                 `\n` +
-                `┃⌬┃ 🔔 Ce membre a été démis\n` +
-                `┃⌬┃  automatiquement !\n` +
+                `┃⌬┃ 🔔 This member was demoted\n` +
+                `┃⌬┃  automatically!\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             mentions: participants,

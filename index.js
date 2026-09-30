@@ -1,5 +1,5 @@
 /**
- * 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2 - A WhatsApp Bot
+ * 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 - A WhatsApp Bot
  * Copyright (c) 2026 Professor
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -47,7 +47,7 @@ const { join } = require('path')
 
 // Import lightweight store
 const createStore = require('./lib/lightweight_store')
-const store = createStore()   // instance unique pour index.js (mode mono-utilisateur)
+const store = createStore()   // single instance for index.js (single-user mode)
 const settings = require('./settings')
 
 // Memory optimization - Force garbage collection if available
@@ -63,7 +63,7 @@ gcTimer.unref?.()
 const memoryTimer = setInterval(() => {
     const used = process.memoryUsage().rss / 1024 / 1024
     if (used > 400) {
-        console.error(`⚠️ RAM élevée (${Math.round(used)}MB). Le processus reste actif pour éviter une boucle de redémarrage; inspecte /health.`)
+        console.error(`⚠️ High RAM (${Math.round(used)}MB). The process stays active to avoid a restart loop; check /health.`)
     }
 }, 30_000) // check every 30 seconds
 memoryTimer.unref?.()
@@ -75,7 +75,7 @@ let legacyReconnectPending = false
 let legacyReconnectAttempts = 0
 let owner = (() => { try { return JSON.parse(fs.readFileSync("./data/owner.json", "utf8")); } catch { return { ownerNumber: settings.ownerNumber, ownerName: settings.botOwner, botName: settings.botName, prefix: process.env.PREFIX || ".", version: settings.version, mess: settings.botOwner }; } })()
 
-global.botname = "𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2"
+global.botname = "𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔"
 global.themeemoji = "•"
 const pairingCode = !process.env.SKIP_PAIRING && (!!phoneNumber || process.argv.includes("--pairing-code"))
 const useMobile = process.argv.includes("--mobile")
@@ -105,9 +105,9 @@ async function startXeonBotInc() {
             ]);
             if (_v && _v.version) { version = _v.version; isLatest = _v.isLatest; }
         } catch (e) {
-            console.warn('[VARNOX] Version Baileys indisponible rapidement → version de secours');
+            console.warn('[VARNOX] Baileys version quickly unavailable → fallback version');
         }
-        // Supporte --session-dir <dir> pour les instances multi-utilisateurs
+        // Supports --session-dir <dir> for multi-user instances
         const sessionDirArg = (() => {
             const idx = process.argv.indexOf('--session-dir');
             return idx !== -1 && process.argv[idx + 1] ? process.argv[idx + 1] : null;
@@ -180,7 +180,7 @@ async function startXeonBotInc() {
                             isForwarded: true,
                             forwardedNewsletterMessageInfo: {
                                 newsletterJid: '120363424782348922@newsletter',
-                                newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2',
+                                newsletterName: '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔',
                                 serverMessageId: -1
                             }
                         }
@@ -238,7 +238,7 @@ async function startXeonBotInc() {
         if (!!global.phoneNumber) {
             phoneNumber = global.phoneNumber
         } else {
-            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`𝐌𝐄𝐓𝐓𝐄𝐙 𝐕𝐎𝐓𝐑𝐄 𝐍𝐔𝐌𝐄𝐑𝐎 𝐈𝐂𝐈 😍\n𝐅𝐎𝐑𝐌𝐀𝐓: 𝐍𝐎𝐓𝐑𝐄 𝐍𝐔𝐌𝐄𝐑𝐎 (𝐒𝐀𝐍𝐒 + 𝐍𝐈 𝐒𝐏𝐀𝐂𝐄𝐒) : `)))
+            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`𝐏𝐔𝐓 𝐘𝐎𝐔𝐑 𝐍𝐔𝐌𝐁𝐄𝐑 𝐇𝐄𝐑𝐄 😍\n𝐅𝐎𝐑𝐌𝐀𝐓: 𝐎𝐔𝐑 𝐍𝐔𝐌𝐁𝐄𝐑 (𝐖𝐈𝐓𝐇𝐎𝐔𝐓 + 𝐎𝐑 𝐒𝐏𝐀𝐂𝐄𝐒) : `)))
         }
 
         // Clean the phone number - remove any non-digit characters
@@ -283,14 +283,14 @@ async function startXeonBotInc() {
             console.log(chalk.magenta(` `))
             console.log(chalk.yellow(`🤩Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
 
-            // NE PAS envoyer de message automatique au numéro connecté —
-            // cela enverrait le lien de la chaîne à n'importe quel utilisateur
-            // qui connecte son compte. Le message de bienvenue est supprimé.
+            // DO NOT send an automatic message to the connected number —
+            // it would send the channel link to any user
+            // who connects their account. The welcome message is removed.
 
             await delay(250)
-            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2'} ]`)}\n\n`))
+            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || '𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔'} ]`)}\n\n`))
             console.log(chalk.cyan(`< ================================================== >`))
-            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL:𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2`))
+            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL:𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: VARNOX-XD-V2`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} OWNER NUMBER: ${owner.ownerNumber || configuredOwnerNumber || owner.ownerName || 'Owner'}\n${global.themeemoji || '•'} BOT NUMBER: ${configuredBotNumber || phoneNumber || 'configured at pairing'}`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: Central-Hex`))
@@ -392,7 +392,7 @@ startXeonBotInc().catch(error => {
 })
 process.on('uncaughtException', (err) => {
     console.error('[VARNOX] Uncaught Exception:', err?.stack || err)
-    console.error('[VARNOX] Le superviseur doit redémarrer le processus après cette erreur critique.')
+    console.error('[VARNOX] The supervisor must restart the process after this critical error.')
     process.exitCode = 1
 })
 
@@ -404,7 +404,7 @@ let legacyShuttingDown = false
 async function shutdownLegacy(signal) {
     if (legacyShuttingDown) return
     legacyShuttingDown = true
-    console.warn(`[VARNOX] ${signal}: fermeture propre du socket legacy`)
+    console.warn(`[VARNOX] ${signal}: clean shutdown of the legacy socket`)
     clearInterval(gcTimer)
     clearInterval(memoryTimer)
     try { rl?.close() } catch {}

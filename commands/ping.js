@@ -26,7 +26,7 @@ async function pingCommand(sock, chatId, message) {
 
     await sock.sendMessage(chatId, {
       text:
-        `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩𝟮 〕─╮\n` +
+        `╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 〕─╮\n` +
         `│ ⚡ *SYSTEM PULSE*\n` +
         `│\n` +
         `│ 🏓 Response : *${ping} ms*\n` +
@@ -43,7 +43,7 @@ async function pingCommand(sock, chatId, message) {
   } catch (err) {
     console.error('[ping] error:', err.message);
     await sock.sendMessage(chatId, {
-      text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩𝟮 〕─╮\n│ ❌ SYSTEM PULSE FAILED\n╰──────────────────╯',
+      text: '╭─〔 𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔 〕─╮\n│ ❌ SYSTEM PULSE FAILED\n╰──────────────────╯',
       ...channelInfo,
     }, { quoted: message });
   }

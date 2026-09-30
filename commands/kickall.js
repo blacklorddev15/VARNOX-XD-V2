@@ -5,12 +5,12 @@ const { channelInfo } = require('../lib/messageConfig');
 
 /**
  * .kickall
- * Expulse tous les membres non-admins du groupe d'un seul coup.
+ * Kicks all non-admin members of the group in one go.
  */
 async function kickAllCommand(sock, chatId, senderId, message) {
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -19,7 +19,7 @@ async function kickAllCommand(sock, chatId, senderId, message) {
         const meta    = await sock.groupMetadata(chatId);
         const botRaw  = (sock.user?.id || '').split(':')[0].split('@')[0];
 
-        // Construire la liste des membres à expulser (non-admin, non-bot)
+        // Build the list of members to kick (non-admin, non-bot)
         const toKick = meta.participants.filter(p => {
             const pNum    = (p.id  || '').split(':')[0].split('@')[0];
             const pLidNum = (p.lid || '').split(':')[0].split('@')[0];
@@ -32,21 +32,21 @@ async function kickAllCommand(sock, chatId, senderId, message) {
             return sock.sendMessage(chatId, {
                 text:
                     `╭━━━━⌜𝗞𝗜𝗖𝗞𝗔𝗟𝗟⌟\n` +
-                    `┃⌬┃ ℹ️ Aucun membre à expulser.\n` +
-                    `┃⌬┃ Tous les membres sont admins.\n` +
+                    `┃⌬┃ ℹ️ No members to kick.\n` +
+                    `┃⌬┃ All members are admins.\n` +
                     `╰━━━━━━━━━━━━━━━━❍`,
                 ...channelInfo
             }, { quoted: message });
         }
 
-        // Annonce du lancement
+        // Launch announcement
         await sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗞𝗜𝗖𝗞𝗔𝗟𝗟⌟\n` +
-                `┃⌬┃ 🚫 *Expulsion en masse…*\n` +
+                `┃⌬┃ 🚫 *Mass kick…*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ 👥 *${toKick.length}* membre(s) ciblé(s).\n` +
-                `┃⌬┃ Veuillez patienter... ⏳\n` +
+                `┃⌬┃ 👥 *${toKick.length}* member(s) targeted.\n` +
+                `┃⌬┃ Please wait... ⏳\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
@@ -67,10 +67,10 @@ async function kickAllCommand(sock, chatId, senderId, message) {
         await sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗞𝗜𝗖𝗞𝗔𝗟𝗟⌟\n` +
-                `┃⌬┃ ✅ *Expulsion terminée !*\n` +
+                `┃⌬┃ ✅ *Kick completed!*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ 🚫 Expulsés   : *${kicked}*\n` +
-                `┃⌬┃ ❌ Échecs     : *${failed}*\n` +
+                `┃⌬┃ 🚫 Kicked     : *${kicked}*\n` +
+                `┃⌬┃ ❌ Failed     : *${failed}*\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             ...channelInfo
@@ -79,7 +79,7 @@ async function kickAllCommand(sock, chatId, senderId, message) {
     } catch (err) {
         console.error('[kickall] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Erreur lors de l\'expulsion en masse.',
+            text: '❌ Error during the mass kick.',
             ...channelInfo
         }, { quoted: message });
     }

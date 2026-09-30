@@ -27,7 +27,7 @@ async function warnCommand(sock, chatId, senderId, mentionedJids, message) {
         // First check if it's a group
         if (!chatId.endsWith('@g.us')) {
             await sock.sendMessage(chatId, { 
-                text: 'Cette commande ne fonctionne que dans les groupes !'
+                text: 'This command only works in groups!'
             });
             return;
         }
@@ -134,7 +134,7 @@ async function warnCommand(sock, chatId, senderId, mentionedJids, message) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             try {
                 await sock.sendMessage(chatId, { 
-                    text: '❌ Rate limit reached. Veuillez réessayer in a few seconds.'
+                    text: '❌ Rate limit reached. Please try again in a few seconds.'
                 });
             } catch (retryError) {
                 console.error('Error sending retry message:', retryError);

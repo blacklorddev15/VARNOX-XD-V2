@@ -22,12 +22,12 @@ function isAntibotEnabled(chatId) {
 
 async function antibotCommand(sock, chatId, message, args, isSenderAdmin) {
     if (!chatId.endsWith('@g.us')) {
-        await sock.sendMessage(chatId, { text: '❌ Cette commande ne fonctionne que dans les groupes.', ...channelInfo }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ This command only works in groups.', ...channelInfo }, { quoted: message });
         return;
     }
 
     if (!isSenderAdmin) {
-        await sock.sendMessage(chatId, { text: '❌ Seuls les admins peuvent utiliser cette commande.', ...channelInfo }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Only admins can use this command.', ...channelInfo }, { quoted: message });
         return;
     }
 
@@ -35,9 +35,9 @@ async function antibotCommand(sock, chatId, message, args, isSenderAdmin) {
     const action = args[0]?.toLowerCase();
 
     if (!action || action === 'statut') {
-        const status = state[chatId] ? '✅ Activé' : '❌ Désactivé';
+        const status = state[chatId] ? '✅ Enabled' : '❌ Disabled';
         await sock.sendMessage(chatId, {
-            text: `🤖 *ANTIBOT*\n\n📊 Statut : ${status}\n\n📌 Utilisation :\n• *.antibot on* → Activer\n• *.antibot off* → Désactiver\n\n💡 Quand activé, aucun autre bot ne pourra répondre dans ce groupe.`,
+            text: `🤖 *ANTIBOT*\n\n📊 Status : ${status}\n\n📌 Usage :\n• *.antibot on* → Enable\n• *.antibot off* → Disable\n\n💡 When enabled, no other bot will be able to reply in this group.`,
             ...channelInfo
         }, { quoted: message });
         return;
@@ -45,28 +45,28 @@ async function antibotCommand(sock, chatId, message, args, isSenderAdmin) {
 
     if (action === 'on') {
         if (state[chatId]) {
-            await sock.sendMessage(chatId, { text: '⚠️ L\'antibot est déjà activé dans ce groupe.', ...channelInfo }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '⚠️ Antibot is already enabled in this group.', ...channelInfo }, { quoted: message });
             return;
         }
         state[chatId] = true;
         saveAntibotState(state);
         await sock.sendMessage(chatId, {
-            text: '✅ *Antibot activé !*\n\n🛡️ Aucun autre bot ne pourra répondre dans ce groupe.',
+            text: '✅ *Antibot enabled!*\n\n🛡️ No other bot will be able to reply in this group.',
             ...channelInfo
         }, { quoted: message });
     } else if (action === 'off') {
         if (!state[chatId]) {
-            await sock.sendMessage(chatId, { text: '⚠️ L\'antibot est déjà désactivé dans ce groupe.', ...channelInfo }, { quoted: message });
+            await sock.sendMessage(chatId, { text: '⚠️ Antibot is already disabled in this group.', ...channelInfo }, { quoted: message });
             return;
         }
         state[chatId] = false;
         saveAntibotState(state);
         await sock.sendMessage(chatId, {
-            text: '❌ *Antibot désactivé !*\n\n🔓 Les autres bots peuvent maintenant répondre dans ce groupe.',
+            text: '❌ *Antibot disabled!*\n\n🔓 Other bots can now reply in this group.',
             ...channelInfo
         }, { quoted: message });
     } else {
-        await sock.sendMessage(chatId, { text: '❌ Option invalide. Utilisez : .antibot on/off', ...channelInfo }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '❌ Invalid option. Use : .antibot on/off', ...channelInfo }, { quoted: message });
     }
 }
 

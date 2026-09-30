@@ -27,8 +27,8 @@ async function antiMentionGcCommand(sock, chatId, senderId, message, args) {
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
-                `┃⌬┃ ❌ Groupe uniquement.\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
+                `┃⌬┃ ❌ Groups only.\n` +
                 `╰━━━━━━━━━━━━❍`,
             ...channelInfo
         }, { quoted: message });
@@ -42,14 +42,14 @@ async function antiMentionGcCommand(sock, chatId, senderId, message, args) {
         writeState(state);
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
                 `┃⌬┃ 📢 *ANTIMENTIONGC*\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `    📢𝗔𝗡𝗡𝗢𝗡𝗖𝗘 ❍𝗙𝗙𝗜𝗖𝗜𝗔𝗟\n` +
-                `┃⌬┃ ✅ Activé ! Les messages\n` +
-                `┃⌬┃ mentionnant le groupe\n` +
-                `┃⌬┃ seront supprimés auto.\n` +
+                `┃⌬┃ ✅ Enabled! Messages\n` +
+                `┃⌬┃ mentioning the group\n` +
+                `┃⌬┃ will be auto-deleted.\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -59,9 +59,9 @@ async function antiMentionGcCommand(sock, chatId, senderId, message, args) {
         writeState(state);
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬┃ 📢 *ANTIMENTIONGC*\n` +
-                `┃⌬┃ ❌ Désactivé.\n` +
+                `┃⌬┃ ❌ Disabled.\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -70,15 +70,15 @@ async function antiMentionGcCommand(sock, chatId, senderId, message, args) {
         const enabled = !!state[chatId];
         return sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
                 `┃⌬┃ 📢 *ANTIMENTIONGC*\n` +
                 `╰━━━━━━━━━━━━❍\n` +
-                `┃⌬┃ Statut : *${enabled ? '✅ Activé' : '❌ Désactivé'}*\n` +
+                `┃⌬┃ Status : *${enabled ? '✅ Enabled' : '❌ Disabled'}*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ Usage :\n` +
-                `┃⌬┃ .antimentiongc on  — activer\n` +
-                `┃⌬┃ .antimentiongc off — désactiver\n` +
+                `┃⌬┃ .antimentiongc on  — enable\n` +
+                `┃⌬┃ .antimentiongc off — disable\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             ...channelInfo
@@ -87,9 +87,9 @@ async function antiMentionGcCommand(sock, chatId, senderId, message, args) {
 }
 
 /**
- * Appelé pour chaque message dans un groupe.
- * Supprime le message si le membre mentionne le groupe (@all, @everyone,
- * ou un JID @g.us dans mentionedJid).
+ * Called for each message in a group.
+ * Deletes the message if the member mentions the group (@all, @everyone,
+ * or a @g.us JID in mentionedJid).
  */
 async function handleAntiMentionGc(sock, chatId, message, senderId) {
     if (!chatId.endsWith('@g.us')) return false;
@@ -152,14 +152,14 @@ async function handleAntiMentionGc(sock, chatId, message, senderId) {
         const senderNum = (senderId || '').split('@')[0];
         await sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫𝗗 𝗩2⌟\n` +
+                `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗫 𝗨𝗟𝗧𝗥𝗔⌟\n` +
                 `┃⌬╭━━━━━━━━━━━━━≽\n` +
                 `┃⌬┃ @${senderNum}\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `    🚫 𝗔𝗡𝗧𝗜𝗠𝗘𝗡𝗧𝗜𝗢𝗡𝗚𝗖\n` +
-                `┃⌬┃ ❌ Il est interdit de\n` +
-                `┃⌬┃ mentionner le groupe !\n` +
-                `┃⌬┃ Ton message a été supprimé.\n` +
+                `┃⌬┃ ❌ It is forbidden to\n` +
+                `┃⌬┃ mention the group!\n` +
+                `┃⌬┃ Your message has been deleted.\n` +
                 `╰━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2 ᴅҽʋҽʅσρҽԃ Ⴆყ ʋαɾɳσx ᴛᴇᴄʜ`,
             mentions: [senderId],

@@ -10,7 +10,7 @@ async function setProfilePicture(sock, chatId, msg) {
         
         if (!msg.key.fromMe && !isOwner) {
             await sock.sendMessage(chatId, { 
-                text: '❌ Cette commande est réservée au propriétaire !' 
+                text: '❌ This command is reserved for the owner!' 
             });
             return;
         }

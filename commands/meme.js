@@ -32,7 +32,7 @@ async function memeCommand(sock, chatId, message) {
     } catch (error) {
         console.error('Error in meme command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Failed to fetch meme. Réessayez plus tard.'
+            text: '❌ Failed to fetch meme. Try again later!'
         },{ quoted: message });
     }
 }

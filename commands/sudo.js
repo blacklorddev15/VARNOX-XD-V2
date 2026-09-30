@@ -30,11 +30,11 @@ async function sudoCommand(sock, chatId, message) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗦𝗨𝗗𝗢⌟\n` +
-                `┃⌬┃ 👑 *Gestion des utilisateurs premium*\n` +
+                `┃⌬┃ 👑 *Premium user management*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ➕ *.sudo add @user* — Ajouter un premium\n` +
-                `┃⌬┃ ➖ *.sudo del @user* — Retirer un premium\n` +
-                `┃⌬┃ 📋 *.sudo list* — Voir la liste\n` +
+                `┃⌬┃ ➕ *.sudo add @user* — Add a premium\n` +
+                `┃⌬┃ ➖ *.sudo del @user* — Remove a premium\n` +
+                `┃⌬┃ 📋 *.sudo list* — View the list\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             ...channelInfo
@@ -48,9 +48,9 @@ async function sudoCommand(sock, chatId, message) {
             return sock.sendMessage(chatId, {
                 text:
                     `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗦𝗨𝗗𝗢⌟\n` +
-                    `┃⌬┃ 📋 *Liste Premium*\n` +
+                    `┃⌬┃ 📋 *Premium List*\n` +
                     `┃⌬┃\n` +
-                    `┃⌬┃ ❌ Aucun utilisateur premium\n` +
+                    `┃⌬┃ ❌ No premium users\n` +
                     `╰━━━━━━━━━━━━━━━━❍`,
                 ...channelInfo
             }, { quoted: message });
@@ -63,7 +63,7 @@ async function sudoCommand(sock, chatId, message) {
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗦𝗨𝗗𝗢⌟\n` +
-                `┃⌬┃ 📋 *Utilisateurs Premium (${list.length})*\n` +
+                `┃⌬┃ 📋 *Premium Users (${list.length})*\n` +
                 `┃⌬┃\n` +
                 `${entries}\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
@@ -76,7 +76,7 @@ async function sudoCommand(sock, chatId, message) {
     // ── Add / Remove : owner only ───────────────────────────────────────────
     if (!isOwner) {
         return sock.sendMessage(chatId, {
-            text: '❌ Seul le propriétaire peut ajouter/retirer des utilisateurs premium.',
+            text: '❌ Only the owner can add/remove premium users.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -84,7 +84,7 @@ async function sudoCommand(sock, chatId, message) {
     const targetJid = extractMentionedJid(message);
     if (!targetJid) {
         return sock.sendMessage(chatId, {
-            text: '⚠️ Mentionne un utilisateur ou donne son numéro.',
+            text: '⚠️ Mention a user or give their number.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -95,21 +95,21 @@ async function sudoCommand(sock, chatId, message) {
         const ok = await addSudo(targetJid);
         if (!ok) {
             return sock.sendMessage(chatId, {
-                text: '❌ Impossible d\'ajouter cet utilisateur.',
+                text: '❌ Unable to add this user.',
                 ...channelInfo
             }, { quoted: message });
         }
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗘𝗠𝗜𝗨𝗠⌟\n` +
-                `┃⌬┃ ⭐ *Nouveau Utilisateur Premium*\n` +
+                `┃⌬┃ ⭐ *New Premium User*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ 👤 @${targetNum}\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ✅ Cet utilisateur est ajouté en tant\n` +
-                `┃⌬┃    qu'utilisateur premium.\n` +
-                `┃⌬┃ Il peut désormais utiliser toutes les\n` +
-                `┃⌬┃ commandes avancées du bot 🚀\n` +
+                `┃⌬┃ ✅ This user has been added as\n` +
+                `┃⌬┃    a premium user.\n` +
+                `┃⌬┃ They can now use all the\n` +
+                `┃⌬┃ advanced bot commands 🚀\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             mentions: [targetJid],
@@ -121,25 +121,25 @@ async function sudoCommand(sock, chatId, message) {
         const ownerJid = settings.ownerNumber + '@s.whatsapp.net';
         if (targetJid === ownerJid) {
             return sock.sendMessage(chatId, {
-                text: '⚠️ Impossible de retirer le propriétaire.',
+                text: '⚠️ The owner cannot be removed.',
                 ...channelInfo
             }, { quoted: message });
         }
         const ok = await removeSudo(targetJid);
         if (!ok) {
             return sock.sendMessage(chatId, {
-                text: '❌ Impossible de retirer cet utilisateur.',
+                text: '❌ Unable to remove this user.',
                 ...channelInfo
             }, { quoted: message });
         }
         return sock.sendMessage(chatId, {
             text:
                 `╭━━━━⌜𝗩𝗔𝗥𝗡𝗢𝗫 𝗣𝗥𝗘𝗠𝗜𝗨𝗠⌟\n` +
-                `┃⌬┃ ❌ *Utilisateur Premium Retiré*\n` +
+                `┃⌬┃ ❌ *Premium User Removed*\n` +
                 `┃⌬┃\n` +
                 `┃⌬┃ 👤 @${targetNum}\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ Cet utilisateur n'est plus premium.\n` +
+                `┃⌬┃ This user is no longer premium.\n` +
                 `╰━━━━━━━━━━━━━━━━❍`,
             mentions: [targetJid],
             ...channelInfo

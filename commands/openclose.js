@@ -5,7 +5,7 @@ const { channelInfo } = require('../lib/messageConfig');
 async function openGroupCommand(sock, chatId, message) {
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -15,11 +15,11 @@ async function openGroupCommand(sock, chatId, message) {
         const meta = await sock.groupMetadata(chatId);
         await sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗚𝗥𝗢𝗨𝗣𝗘 𝗢𝗨𝗩𝗘𝗥𝗧⌟\n` +
-                `┃⌬┃ 🔓 *${meta.subject || 'Groupe'}*\n` +
+                `╭━━━━⌜𝗚𝗥𝗢𝗨𝗣 𝗢𝗣𝗘𝗡⌟\n` +
+                `┃⌬┃ 🔓 *${meta.subject || 'Group'}*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ✅ Le groupe est maintenant *ouvert*.\n` +
-                `┃⌬┃ Tous les membres peuvent écrire. 💬\n` +
+                `┃⌬┃ ✅ The group is now *open*.\n` +
+                `┃⌬┃ All members can write. 💬\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             ...channelInfo
@@ -27,7 +27,7 @@ async function openGroupCommand(sock, chatId, message) {
     } catch (err) {
         console.error('[open] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible d\'ouvrir le groupe.',
+            text: '❌ Failed to open the group.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -36,7 +36,7 @@ async function openGroupCommand(sock, chatId, message) {
 async function closeGroupCommand(sock, chatId, message) {
     if (!chatId.endsWith('@g.us')) {
         return sock.sendMessage(chatId, {
-            text: '❌ Cette commande ne fonctionne que dans les groupes.',
+            text: '❌ This command only works in groups.',
             ...channelInfo
         }, { quoted: message });
     }
@@ -46,11 +46,11 @@ async function closeGroupCommand(sock, chatId, message) {
         const meta = await sock.groupMetadata(chatId);
         await sock.sendMessage(chatId, {
             text:
-                `╭━━━━⌜𝗚𝗥𝗢𝗨𝗣𝗘 𝗙𝗘𝗥𝗠𝗘⌟\n` +
-                `┃⌬┃ 🔒 *${meta.subject || 'Groupe'}*\n` +
+                `╭━━━━⌜𝗚𝗥𝗢𝗨𝗣 𝗖𝗟𝗢𝗦𝗘𝗗⌟\n` +
+                `┃⌬┃ 🔒 *${meta.subject || 'Group'}*\n` +
                 `┃⌬┃\n` +
-                `┃⌬┃ ✅ Le groupe est maintenant *fermé*.\n` +
-                `┃⌬┃ Seuls les admins peuvent écrire. 🔐\n` +
+                `┃⌬┃ ✅ The group is now *closed*.\n` +
+                `┃⌬┃ Only admins can write. 🔐\n` +
                 `╰━━━━━━━━━━━━━━━━❍\n` +
                 `\n> ©2026 ʋαɾɳσx xᴅ ʋ2`,
             ...channelInfo
@@ -58,7 +58,7 @@ async function closeGroupCommand(sock, chatId, message) {
     } catch (err) {
         console.error('[close] error:', err.message);
         await sock.sendMessage(chatId, {
-            text: '❌ Impossible de fermer le groupe.',
+            text: '❌ Failed to close the group.',
             ...channelInfo
         }, { quoted: message });
     }

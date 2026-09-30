@@ -70,7 +70,7 @@ async function insultCommand(sock, chatId, message) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             try {
                 await sock.sendMessage(chatId, { 
-                    text: 'Veuillez réessayer in a few seconds.'
+                    text: 'Please try again in a few seconds.'
                 });
             } catch (retryError) {
                 console.error('Error sending retry message:', retryError);
@@ -78,7 +78,7 @@ async function insultCommand(sock, chatId, message) {
         } else {
             try {
                 await sock.sendMessage(chatId, { 
-                    text: 'Une erreur est survenue lors de sending the insult.'
+                    text: 'An error occurred while sending the insult.'
                 });
             } catch (sendError) {
                 console.error('Error sending error message:', sendError);
