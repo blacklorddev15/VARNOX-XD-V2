@@ -839,6 +839,7 @@ async function shutdown(signal, exitCode = 0) {
     pairingSockets.delete(number);
   }
   await shutdownBotInstances();
+  if (siteBridge) { try { await siteBridge.stop(); } catch { /* nothing useful to do while exiting */ } }
   if (server) {
     await new Promise(resolve => {
       const timeout = setTimeout(resolve, 5000);
@@ -876,6 +877,18 @@ server = app.listen(PORT, HOST, () => {
 server.on('error', error => {
   console.error('[VARNOX] HTTP server error:', error);
 });
+
+// ── Link this bot to the VARNOX website ──────────────────────────────────────
+// Publishes the heartbeat the dashboard reads, drains the website's pairing
+// queue through /code, and mirrors live sessions so they appear on the site.
+// Inert unless DATABASE_URL is set, so standalone use is unchanged.
+// `var`, not `let`: shutdown() may run from an uncaughtException during module
+// load, and a `let` declared this far down would still be in its temporal dead
+// zone at that point.
+var siteBridge = null;
+require('./lib/siteBridge').startSiteBridge()
+  .then(bridge => { siteBridge = bridge; })
+  .catch(error => console.error('[site-bridge] failed to start:', error.message));
 server.requestTimeout = 70_000;
 server.headersTimeout = 75_000;
 server.keepAliveTimeout = 65_000;
