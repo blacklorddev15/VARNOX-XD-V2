@@ -1,4 +1,6 @@
-require('dotenv').config();
+// From this folder rather than the working directory, so the bot process (index.js / main.js)
+// finds the same .env as web.js even when the host starts it from somewhere else.
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 global.APIs = {
     xteam: 'https://api.xteam.xyz',

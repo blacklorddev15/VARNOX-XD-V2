@@ -16,13 +16,32 @@
  */
 'use strict';
 
-// Load .env before anything reads process.env. main.js already pulls this in through
-// config.js, but web.js is the process `npm start` actually runs, and it never did — so a
-// .env sitting next to the code was silently ignored by the panel and by the site bridge,
-// which is where DATABASE_URL and PORT come from. First statement on purpose: settings.js
-// reads process.env at require time. dotenv is already a dependency and does nothing when
-// no .env is present, so host-provided variables still work exactly as before.
-require('dotenv').config();
+// Load configuration before anything reads process.env. settings.js reads process.env at
+// require time, and the site bridge reads DATABASE_URL, so this has to be first.
+//
+// Two things make this more than a one-liner:
+//
+//  * The .env is loaded from THIS folder, not from the working directory. Hosts do not always
+//    start the process where the files live, and a .env that is sitting right next to web.js
+//    must still be found when they don't.
+//
+//  * Pterodactyl's file manager hides dot-files, and a panel's Startup tab only reaches the app
+//    for variables the egg declares -- so a plain database-url.txt is also accepted, and is the
+//    route that cannot be defeated by a hidden file or an undeclared egg variable.
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
+if (!process.env.DATABASE_URL) {
+  try {
+    const firstSetting = require('fs')
+      .readFileSync(require('path').join(__dirname, 'database-url.txt'), 'utf8')
+      .split('\n')
+      .map((line) => line.trim())
+      .find((line) => line && !line.startsWith('#'));
+    if (firstSetting) process.env.DATABASE_URL = firstSetting;
+  } catch (ignored) {
+    // No fallback file: nothing to do, the bridge simply stays inactive.
+  }
+}
 
 const settings = require('./settings');
 
