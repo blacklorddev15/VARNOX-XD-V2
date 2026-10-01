@@ -10,3 +10,7 @@ tmp/
 *.bak
 auth_info_baileys/
 auth_info/
+
+# Credential-bearing files: never commit these
+database-url.txt
+settings.local.js
