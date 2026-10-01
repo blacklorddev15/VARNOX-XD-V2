@@ -58,7 +58,10 @@ const {
 } = require('./lib/botInstance');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+// Pterodactyl hands over the allocation as SERVER_PORT, not PORT. Without that fallback the
+// panel kept binding 3000 while the address the panel shows you was the allocation, so the
+// pairing page was unreachable from outside. Render still sets PORT, which wins.
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 /* ─── Directories ─────────────────────────────────────────── */
