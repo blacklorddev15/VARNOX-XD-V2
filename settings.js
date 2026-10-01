@@ -21,6 +21,29 @@ const settings = {
   version: "2.0.0",
   commandCount: 148,
 
+  // ════════════════════════════════════════════════════
+  //   🗄️  WEBSITE DATABASE
+  // ════════════════════════════════════════════════════
+  // Used to link this bot to the VARNOX website. Read LAST, so anything supplied
+  // by the host wins over it. Order:
+  //
+  //   1. DATABASE_URL in the environment   (Render / panel egg variable)
+  //   2. DATABASE_URL in .env
+  //   3. database-url.txt in this folder
+  //   4. databaseUrl below                 ← this line
+  //
+  // It is here so the panel cannot hide it and no egg variable is required. Put
+  // the whole connection string in the quotes, on one line:
+  //
+  //   databaseUrl: 'postgresql://user:pass@host/db?sslmode=require',
+  //
+  // ⚠️ WARNING — this file is tracked in a PUBLIC repository. If you commit and
+  // push it with the password filled in, that password is public forever, and it
+  // grants full access to every table in that database. Keep the filled-in copy
+  // on the server only: never `git add settings.js` after pasting a real value.
+  // Leave it '' and use .env or database-url.txt instead if you can.
+  databaseUrl: '',
+
   // Your GitHub link (optional)
   updateZipUrl: "https://github.com/mohamedsoumahv99-bot/VARNOX-XD-V2/archive/refs/heads/main.zip",
 

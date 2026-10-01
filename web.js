@@ -43,6 +43,18 @@ if (!process.env.DATABASE_URL) {
   }
 }
 
+// Last resort: the databaseUrl setting in settings.js. It is an ordinary committed file, so the
+// panel cannot hide it and no egg variable has to exist. See the warning next to that line —
+// a real value there is a live credential sitting inside a public repository.
+if (!process.env.DATABASE_URL) {
+  try {
+    const configured = require('./settings').databaseUrl;
+    if (configured) process.env.DATABASE_URL = String(configured).trim();
+  } catch (ignored) {
+    // settings.js unreadable: leave DATABASE_URL unset and stay inactive.
+  }
+}
+
 const settings = require('./settings');
 
 const express  = require('express');
