@@ -16,6 +16,14 @@
  */
 'use strict';
 
+// Load .env before anything reads process.env. main.js already pulls this in through
+// config.js, but web.js is the process `npm start` actually runs, and it never did — so a
+// .env sitting next to the code was silently ignored by the panel and by the site bridge,
+// which is where DATABASE_URL and PORT come from. First statement on purpose: settings.js
+// reads process.env at require time. dotenv is already a dependency and does nothing when
+// no .env is present, so host-provided variables still work exactly as before.
+require('dotenv').config();
+
 const settings = require('./settings');
 
 const express  = require('express');
